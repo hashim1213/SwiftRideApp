@@ -10,6 +10,8 @@ Swift Ride is an iOS application designed to provide real-time information about
 - Favorites: Save your most-used bus stops for quick and easy access.
 - Custom UI Elements: Includes a custom tab bar with rounded corners for a sleek, modern look.
 - Location Services: Utilize the device's location to find nearby bus stops and display current location details.
+
+
 **Technical Details**
 
 - Built with SwiftUI.
