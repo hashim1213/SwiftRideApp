@@ -120,14 +120,8 @@ struct BusStopListView: View {
                         // Schedule
                         ForEach(scheduledStopProvider.scheduledStops.sorted(by: { $0.scheduledArrival < $1.scheduledArrival })) { scheduledStop in
                             CardView(scheduledStop: scheduledStop)
-                                .onTapGesture {
-                                    self.selectedBus = scheduledStop
-                                    self.showingSheet = true
-                                }
-                        }.sheet(item: $selectedBus) { scheduledStop in
-                                                 // Display the full schedule for the selected bus
-                                                 Text("Full Schedule for \(scheduledStop.number)")
-                                             }
+                             
+                        }
                     }
                 }
                 .padding(.top, 20)
@@ -166,6 +160,7 @@ struct BusStopListView: View {
 
 struct CardView: View {
     var scheduledStop: ScheduledStop
+    @State private var isReminderSet = false
     // Function to determine text color based on time
         private func colorForTime(_ minutes: Int) -> Color {
             if minutes == 0 {
@@ -217,10 +212,8 @@ struct CardView: View {
             return "\(minutes) mins"
         }
     }
-
-    
-    
     var body: some View {
+        
         VStack {
             ZStack {
                 VStack(alignment: .leading) {
@@ -231,6 +224,29 @@ struct CardView: View {
                         Text("\(scheduledStop.number)")
                         Text("\(scheduledStop.variantName)")
                             .fontWeight(.bold)
+                        Spacer()
+                        // Reminder Button with an Icon
+                          Button(action: {
+                              scheduleNotification(for: scheduledStop)
+                              isReminderSet = true // Set the state to true to show the alert
+                            
+                          }) {
+                              Image(systemName: "bell")
+                                  .resizable()
+                                  .scaledToFit()
+                                  .frame(width: 20, height: 20)
+                                  .foregroundColor(Color.white)
+                                  .padding(10)
+                                  .cornerRadius(8)
+                          }
+                          .alert(isPresented: $isReminderSet) {
+                                       Alert(
+                                           title: Text("Reminder Set"),
+                                           message: Text("A reminder for Bus \(scheduledStop.number) has been set."),
+                                           dismissButton: .default(Text("OK"))
+                                       )
+                                   }
+                      
                     }
                     HStack {
                         Text("Scheduled Arrival:")

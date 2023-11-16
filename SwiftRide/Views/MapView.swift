@@ -20,7 +20,7 @@ struct MapView: View {
         let lat = center.latitude
         let lon = center.longitude
         // Assuming radius is based on the span of the map region
-        let radius = Int((region.span.latitudeDelta + region.span.longitudeDelta) * 10000) // Adjust this calculation as needed
+        let radius = Int((region.span.latitudeDelta + region.span.longitudeDelta) * 5000) // Adjust this calculation as needed
 
         busStopProvider.fetchBusStopsForRegion(lat: lat, lon: lon, radius: radius) {
             isLoading = false

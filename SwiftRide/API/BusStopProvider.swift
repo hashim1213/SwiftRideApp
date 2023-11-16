@@ -74,7 +74,10 @@ class BusStopProvider: ObservableObject {
 }
 
 extension BusStopProvider {
+    
     func fetchBusStopsForRegion(lat: Double, lon: Double, radius: Int, completion: (() -> Void)? = nil) {
+      
+        
         isLoading = true
         let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=\(radius)&api-key=BfrWUj9_WlAd-YuTLN6v"
 
@@ -178,11 +181,8 @@ class BusStopParser: NSObject, XMLParserDelegate {
         if elementName == "cross-street" {
             isParsingCrossStreet = false  // Set the flag to false
         }
-     
-             
         if elementName == "stop" {
             let busStop = BusStop(
-           
                 key: currentKey,
                 name: currentName,
                 number: currentNumber,

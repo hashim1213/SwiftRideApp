@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import UserNotifications
 
 struct ContentView: View {
     @StateObject var busStopProvider = BusStopProvider.shared // Singleton instance
@@ -14,6 +15,7 @@ struct ContentView: View {
     )
     
     init() {
+        requestNotificationPermission()
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.8))
@@ -45,12 +47,14 @@ struct ContentView: View {
                         })
                         .animation(.spring())
                     }
+                    
                 }
                 .onAppear {
                     busStopProvider.fetchBusStops()
                 }
                 floatingButtons // Moved floating buttons to a separate function
             }
+            
             .tabItem {
                 Image(systemName: "map.fill")
                 Text("Map")
@@ -128,7 +132,7 @@ struct ContentView: View {
                             }
                         }
                     }) {
-                        Image(systemName: "magnifyingglass")
+                        Image(systemName: "network")
                             .foregroundColor(isExploreModeActive ? Color.blue : Color.gray)
                     }
                     .frame(width: 50, height: 50)
@@ -142,6 +146,16 @@ struct ContentView: View {
         .padding()
     }
 }
+
+private func requestNotificationPermission() {
+      UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+          if granted {
+              print("Notification permission granted.")
+          } else if let error = error {
+              print("Notification permission error: \(error)")
+          }
+      }
+  }
 
 class RoundedCornerView: UIView {
     override func layoutSubviews() {

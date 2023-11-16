@@ -26,6 +26,7 @@
 		F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8DF2AE8F580009AA7CE /* SwiftRide.xcdatamodeld */; };
 		F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8E22AE9913D009AA7CE /* CoreDataManager .swift */; };
 		F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */; };
+		F5C3A15A2B05F4E900E98B6F /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C3A1592B05F4E900E98B6F /* Notifications.swift */; };
 		F5E1E75E2AE774D300B8B5B2 /* BusStopFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E1E75D2AE774D300B8B5B2 /* BusStopFeatures.swift */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +70,8 @@
 		F5ACF8E02AE8F580009AA7CE /* SwiftRide.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SwiftRide.xcdatamodel; sourceTree = "<group>"; };
 		F5ACF8E22AE9913D009AA7CE /* CoreDataManager .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataManager .swift"; sourceTree = "<group>"; };
 		F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyStops.swift; sourceTree = "<group>"; };
+		F5C3A1592B05F4E900E98B6F /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		F5C3A15B2B05F61100E98B6F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F5E1E75D2AE774D300B8B5B2 /* BusStopFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopFeatures.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -120,6 +123,7 @@
 		F586196A2AD8E0A700C56D78 /* SwiftRide */ = {
 			isa = PBXGroup;
 			children = (
+				F5C3A15B2B05F61100E98B6F /* Info.plist */,
 				F586196B2AD8E0A700C56D78 /* SwiftRideApp.swift */,
 				F5ACF8E62AEA2BAC009AA7CE /* API */,
 				F5ACF8E72AEA2BE2009AA7CE /* Views */,
@@ -175,6 +179,7 @@
 				F586199A2AD8E12A00C56D78 /* MapView.swift */,
 				F58619A02AD8E25400C56D78 /* BusStopListView.swift */,
 				F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */,
+				F5C3A1592B05F4E900E98B6F /* Notifications.swift */,
 				F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */,
 				F56212EC2AEF461C0032756F /* StaticMapView.swift */,
 				F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */,
@@ -320,6 +325,7 @@
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,
 				F586199B2AD8E12A00C56D78 /* MapView.swift in Sources */,
 				F586196C2AD8E0A700C56D78 /* SwiftRideApp.swift in Sources */,
+				F5C3A15A2B05F4E900E98B6F /* Notifications.swift in Sources */,
 				F586199F2AD8E1D500C56D78 /* BusStopProvider.swift in Sources */,
 				F5ACF8DC2AE8EBA2009AA7CE /* Favourites.swift in Sources */,
 				F58619A32AD8E33200C56D78 /* BusStop.swift in Sources */,
@@ -493,6 +499,7 @@
 				DEVELOPMENT_TEAM = VW2F87BNYU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SwiftRide/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -524,6 +531,7 @@
 				DEVELOPMENT_TEAM = VW2F87BNYU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SwiftRide/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

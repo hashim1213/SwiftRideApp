@@ -1,10 +1,3 @@
-//
-//  BusStopScheduleListView.swift
-//  SwiftRide
-//
-//  Created by Hashim Farooq on 2023-10-29.
-//
-
 import Foundation
 import SwiftUI
 import CoreData
@@ -27,19 +20,13 @@ struct BusStopScheduleListView: View {
             ScrollView {
                 ForEach(sortedStops.prefix(30), id: \.self) { scheduledStop in
                     CardView(scheduledStop: scheduledStop)
-                        .onTapGesture {
-                            self.cardTapped(scheduledStop)
-                        }
+                        
                 }
 
             }
             .padding(.top, 8)
         }
-        .sheet(isPresented: $showingSheet) {
-            if let selectedBus = selectedBus {
-                FullScheduleView(scheduledStop: selectedBus)
-            }
-        }
+        
         .navigationTitle("\(selectedBusStop.name)")
         .navigationBarTitleDisplayMode(.inline)
         .padding()
@@ -77,13 +64,3 @@ extension BusStop {
 }
 
 
-
-
-struct FullScheduleView: View {
-    var scheduledStop: ScheduledStop
-
-    var body: some View {
-        Text("Full Schedule for \(scheduledStop.number)")
-            // Add more details and styling
-    }
-}
