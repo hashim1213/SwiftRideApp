@@ -73,6 +73,33 @@ class BusStopProvider: ObservableObject {
     }
 }
 
+extension BusStopProvider {
+    func fetchBusStopsForRegion(lat: Double, lon: Double, radius: Int, completion: (() -> Void)? = nil) {
+        isLoading = true
+        let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=\(radius)&api-key=BfrWUj9_WlAd-YuTLN6v"
+
+        if let url = URL(string: urlString) {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if let data = data {
+                    
+                    let parser = XMLParser(data: data)
+                    let delegate = BusStopParser()
+                    parser.delegate = delegate
+                    parser.parse()
+                    DispatchQueue.main.async { [weak self] in
+                        self?.busStops.removeAll()  // Clear the array
+                        self?.busStops = delegate.busStops
+                        self?.isLoading = false // Stop loading when data is fetched
+                        completion?()
+                    }
+                }
+            }
+            .resume()
+        }
+    }
+}
+
+
 class BusStopParser: NSObject, XMLParserDelegate {
     var busStops: [BusStop] = []
     var currentElement: String = ""

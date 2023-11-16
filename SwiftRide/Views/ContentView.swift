@@ -1,33 +1,33 @@
 import SwiftUI
+import MapKit
 
 struct ContentView: View {
     @StateObject var busStopProvider = BusStopProvider.shared // Singleton instance
-    @ObservedObject var tripPlanner = TripPlanner()
     @State private var selectedBusStop: BusStop? = nil
     @State private var selectedTab = 0 // State to track selected tab
     @State private var isLoading = false  // State to track loading
+    @State private var isExploreModeActive = false
+    
+    @State private var mapRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 49.8943, longitude: -97.1388),
+        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    )
     
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.8))
-        
-        
         appearance.stackedLayoutAppearance.selected.iconColor = UIColor.white
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
-        
-   
         UITabBar.appearance().standardAppearance = appearance
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = appearance
         }
-
-       
         UITabBar.appearance().layer.masksToBounds = true
-        UITabBar.appearance().layer.cornerRadius = 50 
+        UITabBar.appearance().layer.cornerRadius = 50
         UITabBar.appearance().layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
     }
-
+    
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -35,7 +35,7 @@ struct ContentView: View {
             ZStack {
                 VStack {
                     // Map View
-                    MapView(busStops: $busStopProvider.busStops, selectedBusStop: $selectedBusStop, isLoading: $isLoading)
+                    MapView(busStops: $busStopProvider.busStops, selectedBusStop: $selectedBusStop, isLoading: $isLoading, isExploreModeActive: $isExploreModeActive, region: $mapRegion)
                         .frame(maxHeight: .infinity)
                         .edgesIgnoringSafeArea(.top)
                     // If a bus stop is selected, show its details
@@ -79,24 +79,28 @@ struct ContentView: View {
     }
     
     private func fetchBusStops() {
-         isLoading = true
-         busStopProvider.fetchBusStops {
-             isLoading = false
-         }
-     }
+        isLoading = true
+        busStopProvider.fetchBusStops {
+            isLoading = false
+        }
+    }
     // Floating Buttons as a separate computed property
     private var floatingButtons: some View {
         VStack {
             HStack {
                 Spacer()
-                VStack(spacing: 20) {
+                VStack(spacing: 10) {
                     // Refresh Button
+                    VStack(spacing: 10){
                     Button(action: {
                         busStopProvider.fetchBusStops()
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(Color.gray)
                     }
+                    //.frame(width: 50, height: 50) // Fixed width and height for button
+                    //.background(RoundedRectangle(cornerRadius: 10).fill(Color.gray.opacity(0.2)))
+                    
                     // Location Button
                     Button(action: {
                         if let location = busStopProvider.locationManager.currentLocation {
@@ -108,10 +112,30 @@ struct ContentView: View {
                         Image(systemName: "location.fill")
                             .foregroundColor(Color.gray)
                     }
+                   // .frame(width: 50, height: 50)
+                   // .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray.opacity(0.2)))
+                }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.99)))
+                    
+                    
+                    // Explore Button
+                    Button(action: {
+                        isExploreModeActive.toggle()
+                        if isExploreModeActive {
+                            busStopProvider.fetchBusStopsForRegion(lat: mapRegion.center.latitude, lon: mapRegion.center.longitude, radius: 200) {
+                                isLoading = false
+                            }
+                        }
+                    }) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(isExploreModeActive ? Color.blue : Color.gray)
+                    }
+                    .frame(width: 50, height: 50)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.99)))
                 }
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.99)))
-
+                //.background(RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.15, green: 0.15, blue: 0.15).opacity(0.99)))
             }
             Spacer()
         }

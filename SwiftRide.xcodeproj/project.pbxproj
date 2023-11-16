@@ -22,11 +22,9 @@
 		F586199F2AD8E1D500C56D78 /* BusStopProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F586199E2AD8E1D500C56D78 /* BusStopProvider.swift */; };
 		F58619A12AD8E25400C56D78 /* BusStopListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58619A02AD8E25400C56D78 /* BusStopListView.swift */; };
 		F58619A32AD8E33200C56D78 /* BusStop.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58619A22AD8E33200C56D78 /* BusStop.swift */; };
-		F58619A52AD8EB2D00C56D78 /* TripPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58619A42AD8EB2D00C56D78 /* TripPlanner.swift */; };
 		F5ACF8DC2AE8EBA2009AA7CE /* Favourites.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */; };
 		F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8DF2AE8F580009AA7CE /* SwiftRide.xcdatamodeld */; };
 		F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8E22AE9913D009AA7CE /* CoreDataManager .swift */; };
-		F5ACF8E52AEA28A5009AA7CE /* SearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8E42AEA28A5009AA7CE /* SearchBar.swift */; };
 		F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */; };
 		F5E1E75E2AE774D300B8B5B2 /* BusStopFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E1E75D2AE774D300B8B5B2 /* BusStopFeatures.swift */; };
 /* End PBXBuildFile section */
@@ -67,11 +65,9 @@
 		F586199E2AD8E1D500C56D78 /* BusStopProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopProvider.swift; sourceTree = "<group>"; };
 		F58619A02AD8E25400C56D78 /* BusStopListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopListView.swift; sourceTree = "<group>"; };
 		F58619A22AD8E33200C56D78 /* BusStop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStop.swift; sourceTree = "<group>"; };
-		F58619A42AD8EB2D00C56D78 /* TripPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPlanner.swift; sourceTree = "<group>"; };
 		F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favourites.swift; sourceTree = "<group>"; };
 		F5ACF8E02AE8F580009AA7CE /* SwiftRide.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SwiftRide.xcdatamodel; sourceTree = "<group>"; };
 		F5ACF8E22AE9913D009AA7CE /* CoreDataManager .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataManager .swift"; sourceTree = "<group>"; };
-		F5ACF8E42AEA28A5009AA7CE /* SearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBar.swift; sourceTree = "<group>"; };
 		F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyStops.swift; sourceTree = "<group>"; };
 		F5E1E75D2AE774D300B8B5B2 /* BusStopFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopFeatures.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -129,7 +125,6 @@
 				F5ACF8E72AEA2BE2009AA7CE /* Views */,
 				F5ACF8E22AE9913D009AA7CE /* CoreDataManager .swift */,
 				F58619A22AD8E33200C56D78 /* BusStop.swift */,
-				F58619A42AD8EB2D00C56D78 /* TripPlanner.swift */,
 				F586196F2AD8E0AB00C56D78 /* Assets.xcassets */,
 				F58619742AD8E0AB00C56D78 /* Persistence.swift */,
 				F5ACF8DF2AE8F580009AA7CE /* SwiftRide.xcdatamodeld */,
@@ -183,7 +178,6 @@
 				F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */,
 				F56212EC2AEF461C0032756F /* StaticMapView.swift */,
 				F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */,
-				F5ACF8E42AEA28A5009AA7CE /* SearchBar.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -322,11 +316,9 @@
 				F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */,
 				F586196E2AD8E0A700C56D78 /* ContentView.swift in Sources */,
 				F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */,
-				F58619A52AD8EB2D00C56D78 /* TripPlanner.swift in Sources */,
 				F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */,
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,
 				F586199B2AD8E12A00C56D78 /* MapView.swift in Sources */,
-				F5ACF8E52AEA28A5009AA7CE /* SearchBar.swift in Sources */,
 				F586196C2AD8E0A700C56D78 /* SwiftRideApp.swift in Sources */,
 				F586199F2AD8E1D500C56D78 /* BusStopProvider.swift in Sources */,
 				F5ACF8DC2AE8EBA2009AA7CE /* Favourites.swift in Sources */,
