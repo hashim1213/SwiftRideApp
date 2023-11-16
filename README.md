@@ -2,21 +2,22 @@
 
 💡**Overview**
 
-Swift Ride is an iOS application designed to provide real-time information about bus stops. It features an interactive map, a list of nearby bus stops, and a favorites section for easy access to frequently used stops. It uses Winnipeg Bus Tranist Open Data API. 
+Swift Ride is an iOS application designed to provide real-time information about bus stops in Winnipeg Manitoba. It features an interactive map, a list of nearby bus stops, and a favorites section for easy access to frequently used stops. It uses Winnipeg Bus Tranist Open Data API. 
 
 📱**Features**
 - Interactive Map: View bus stops on a map, with real-time updates and detailed information for each stop.
+- Explore: View all bus stops on the map as your interact with the map. 
 - Nearby Bus Stops: Discover bus stops closest to your current location.
 - Favorites: Save your most-used bus stops for quick and easy access.
-- Custom UI Elements: Includes a custom tab bar with rounded corners for a sleek, modern look.
 - Location Services: Utilize the device's location to find nearby bus stops and display current location details.
+- Reminders: Set reminders for buses and get notifctaions for when your bus will arrive. 
 
 
 🎛️**Technical Details**
 
 - Built with SwiftUI.
-- Uses a singleton pattern for managing bus stop data (BusStopProvider).
-- Implements custom UI modifications for the tab bar appearance.
+- Data locally stored in CoreData 
+- Uses a singleton pattern for managing bus stop data.
 - Implements floating action buttons for refreshing data and accessing location information.
 - Fetches and displays bus stop data upon app launch and via user interactions.
   
@@ -30,9 +31,11 @@ Swift Ride is an iOS application designed to provide real-time information about
 
 
 📰**Dependencies**
+
 iOS 13.0 or later.
 SwiftUI framework.
 
 📚**Setup**
+
 Clone the repository, open the project in Xcode, 
 and run it on a simulator or a real device.
