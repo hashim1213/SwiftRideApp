@@ -122,6 +122,13 @@ struct BusStopListView: View {
                             CardView(scheduledStop: scheduledStop)
                              
                         }
+                        Text("Not seeing any buses? There may be an issue with the retrieval process or there may be no buses scheduled. Please try pressing the refresh button and wait 30 seconds.")
+                                            .font(.subheadline)
+                                            .multilineTextAlignment(.center)
+                                            .padding()
+                                            .foregroundColor(.gray)
+                            
+                        
                     }
                 }
                 .padding(.top, 20)
@@ -156,8 +163,6 @@ struct BusStopListView: View {
     }
 
  }
-
-
 struct CardView: View {
     var scheduledStop: ScheduledStop
     @State private var isReminderSet = false
@@ -241,7 +246,7 @@ struct CardView: View {
                           }
                           .alert(isPresented: $isReminderSet) {
                                        Alert(
-                                           title: Text("Reminder Set"),
+                                           title: Text("Reminder Set for 5 mins before arrival"),
                                            message: Text("A reminder for Bus \(scheduledStop.number) has been set."),
                                            dismissButton: .default(Text("OK"))
                                        )

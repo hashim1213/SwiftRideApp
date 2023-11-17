@@ -13,7 +13,7 @@ func scheduleNotification(for stop: ScheduledStop) {
     }
 
     content.title = "Bus Arrival Reminder"
-    content.body = "Bus \(stop.number) is arriving in \(minutesToArrival) minutes."
+    content.body = "Bus \(stop.number) is arriving in 5 minutes."
 
     // Set the notification to trigger when the bus is a few minutes away
     let timeIntervalBeforeArrival: TimeInterval = max(1, Double(minutesToArrival - 5)) * 60 // Trigger 5 minutes before arrival
