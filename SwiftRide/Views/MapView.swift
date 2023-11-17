@@ -1,19 +1,40 @@
 import Foundation
 import SwiftUI
 import MapKit
+import CoreLocation
+
 
 struct MapView: View {
     @Binding var busStops: [BusStop]
-    @Binding var selectedBusStop: BusStop?
-    @Binding var isLoading: Bool
-    @Binding var isExploreModeActive: Bool
-    @StateObject var busStopProvider = BusStopProvider.shared // Reference to BusStopProvider
-    @Binding var region: MKCoordinateRegion
-    
-    @State private var equatableRegion = EquatableRegion(region: MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 49.8943, longitude: -97.1388),
-            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-        ))
+       @Binding var selectedBusStop: BusStop?
+       @Binding var isLoading: Bool
+       @Binding var isExploreModeActive: Bool
+       @Binding var currentLocation: CLLocation? // Binding to current location
+       @StateObject var busStopProvider = BusStopProvider.shared
+
+       @State private var equatableRegion: EquatableRegion
+
+       init(busStops: Binding<[BusStop]>, selectedBusStop: Binding<BusStop?>, isLoading: Binding<Bool>, isExploreModeActive: Binding<Bool>, currentLocation: Binding<CLLocation?>) {
+           self._busStops = busStops
+           self._selectedBusStop = selectedBusStop
+           self._isLoading = isLoading
+           self._isExploreModeActive = isExploreModeActive
+           self._currentLocation = currentLocation
+
+           // Initialize the region based on the current location
+           if let location = currentLocation.wrappedValue {
+               self._equatableRegion = State(initialValue: EquatableRegion(region: MKCoordinateRegion(
+                   center: location.coordinate,
+                   span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+               )))
+           } else {
+               // Default region if current location is not available
+               self._equatableRegion = State(initialValue: EquatableRegion(region: MKCoordinateRegion(
+                   center: CLLocationCoordinate2D(latitude: 49.8943, longitude: -97.1388),
+                   span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+               )))
+           }
+       }
 
     private func fetchBusStopsForRegion(_ region: MKCoordinateRegion) {
         let center = region.center
@@ -40,13 +61,20 @@ struct MapView: View {
                     }
             }
         }
+        .onAppear {
+                   if let currentLocation = currentLocation {
+                       equatableRegion.region.center = currentLocation.coordinate
+                       // You may adjust the span as per your requirement
+                       equatableRegion.region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                   }
+               }
         .onChange(of: equatableRegion) { newRegionWrapper in
                    let newRegion = newRegionWrapper.region
                    if isExploreModeActive {
                        fetchBusStopsForRegion(newRegion)
                    }
                }
-               .onAppear {
+         .onAppear {
                    if isExploreModeActive {
                        fetchBusStopsForRegion(equatableRegion.region)
                    }

@@ -16,7 +16,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.locationManager.requestWhenInUseAuthorization()
         self.locationManager.startUpdatingLocation()
         // Set the currentLocation to Winnipeg for debugging
-        self.currentLocation = CLLocation(latitude: 49.8943, longitude: -97.1388) // Winnipeg coordinates
+       // self.currentLocation = CLLocation(latitude: 49.8943, longitude: -97.1388) // Winnipeg coordinates
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -41,34 +41,41 @@ class BusStopProvider: ObservableObject {
     
     func fetchBusStops(completion: (() -> Void)? = nil) {
         isLoading = true // Start loading
-        if let location = locationManager.currentLocation {
-            
-            // Set default location for development
-            let defaultLat = 49.8943
-            let defaultLon = -97.1388
-            // Print coordinates for debugging
-            print("Fetching bus stops for Latitude: \(defaultLat), Longitude: \(defaultLon)")
-            
-            let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(defaultLon)&lat=\(defaultLat)&distance=200&api-key=BfrWUj9_WlAd-YuTLN6v"
-            
-            if let url = URL(string: urlString) {
-                URLSession.shared.dataTask(with: url) { (data, response, error) in
-                    if let data = data {
-                        
-                        let parser = XMLParser(data: data)
-                        let delegate = BusStopParser()
-                        parser.delegate = delegate
-                        parser.parse()
-                        DispatchQueue.main.async { [weak self] in
-                            self?.busStops.removeAll()  // Clear the array
-                            self?.busStops = delegate.busStops
-                            self?.isLoading = false // Stop loading when data is fetched
-                            completion?()
-                        }
+        
+        guard let location = locationManager.currentLocation else {
+            print("Current location is not available.")
+            isLoading = false
+            completion?()
+            return
+        }
+        
+        let lat = location.coordinate.latitude
+        let lon = location.coordinate.longitude
+        
+        print("Fetching bus stops for Latitude: \(lat), Longitude: \(lon)")
+        
+        let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=200&api-key=BfrWUj9_WlAd-YuTLN6v"
+        
+        if let url = URL(string: urlString) {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if let data = data {
+                    let parser = XMLParser(data: data)
+                    let delegate = BusStopParser()
+                    parser.delegate = delegate
+                    parser.parse()
+                    DispatchQueue.main.async { [weak self] in
+                        self?.busStops.removeAll()  // Clear the array
+                        self?.busStops = delegate.busStops
+                        self?.isLoading = false // Stop loading when data is fetched
+                        completion?()
                     }
+                } else if let error = error {
+                    print("Error fetching bus stops: \(error)")
+                    self.isLoading = false
+                    completion?()
                 }
-                .resume()
             }
+            .resume()
         }
     }
 }

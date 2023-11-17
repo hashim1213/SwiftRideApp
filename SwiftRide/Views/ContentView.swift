@@ -3,6 +3,7 @@ import MapKit
 import UserNotifications
 
 struct ContentView: View {
+    @StateObject var locationManager = LocationManager.shared
     @StateObject var busStopProvider = BusStopProvider.shared // Singleton instance
     @State private var selectedBusStop: BusStop? = nil
     @State private var selectedTab = 0 // State to track selected tab
@@ -37,7 +38,13 @@ struct ContentView: View {
             ZStack {
                 VStack {
                     // Map View
-                    MapView(busStops: $busStopProvider.busStops, selectedBusStop: $selectedBusStop, isLoading: $isLoading, isExploreModeActive: $isExploreModeActive, region: $mapRegion)
+                    MapView(
+                             busStops: $busStopProvider.busStops,
+                             selectedBusStop: $selectedBusStop,
+                             isLoading: $isLoading,
+                             isExploreModeActive: $isExploreModeActive,
+                             currentLocation: $locationManager.currentLocation // Passing the current location
+                         )
                         .frame(maxHeight: .infinity)
                         .edgesIgnoringSafeArea(.top)
                     // If a bus stop is selected, show its details
