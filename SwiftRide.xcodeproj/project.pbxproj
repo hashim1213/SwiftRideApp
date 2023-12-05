@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F53C77412B1F0740004B8254 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77402B1F0740004B8254 /* Settings.swift */; };
+		F53C77432B1F1186004B8254 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77422B1F1186004B8254 /* MailView.swift */; };
 		F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */; };
 		F56212ED2AEF461C0032756F /* StaticMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212EC2AEF461C0032756F /* StaticMapView.swift */; };
 		F56212F12AEF4C790032756F /* BusStopScheduleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */; };
@@ -50,6 +51,7 @@
 
 /* Begin PBXFileReference section */
 		F53C77402B1F0740004B8254 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		F53C77422B1F1186004B8254 /* MailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
 		F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopSchedule.swift; sourceTree = "<group>"; };
 		F56212EC2AEF461C0032756F /* StaticMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticMapView.swift; sourceTree = "<group>"; };
 		F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopScheduleListView.swift; sourceTree = "<group>"; };
@@ -185,6 +187,7 @@
 				F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */,
 				F56212EC2AEF461C0032756F /* StaticMapView.swift */,
 				F53C77402B1F0740004B8254 /* Settings.swift */,
+				F53C77422B1F1186004B8254 /* MailView.swift */,
 				F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */,
 			);
 			path = Views;
@@ -327,6 +330,7 @@
 				F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */,
 				F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */,
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,
+				F53C77432B1F1186004B8254 /* MailView.swift in Sources */,
 				F586199B2AD8E12A00C56D78 /* MapView.swift in Sources */,
 				F586196C2AD8E0A700C56D78 /* SwiftRideApp.swift in Sources */,
 				F5C3A15A2B05F4E900E98B6F /* Notifications.swift in Sources */,

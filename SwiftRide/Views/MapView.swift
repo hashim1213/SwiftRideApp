@@ -11,7 +11,6 @@ struct MapView: View {
        @Binding var isExploreModeActive: Bool
        @Binding var currentLocation: CLLocation? // Binding to current location
        @StateObject var busStopProvider = BusStopProvider.shared
-
        @State private var equatableRegion: EquatableRegion
 
        init(busStops: Binding<[BusStop]>, selectedBusStop: Binding<BusStop?>, isLoading: Binding<Bool>, isExploreModeActive: Binding<Bool>, currentLocation: Binding<CLLocation?>) {
@@ -61,13 +60,18 @@ struct MapView: View {
                     }
             }
         }
+      
         .onAppear {
-                   if let currentLocation = currentLocation {
-                       equatableRegion.region.center = currentLocation.coordinate
-                       // You may adjust the span as per your requirement
-                       equatableRegion.region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                   }
-               }
+            if let currentLocation = currentLocation {
+                equatableRegion.region.center = currentLocation.coordinate
+                equatableRegion.region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+              
+            }
+            if isExploreModeActive {
+                fetchBusStopsForRegion(equatableRegion.region)
+            }
+        }
+
         .onChange(of: equatableRegion) { newRegionWrapper in
                    let newRegion = newRegionWrapper.region
                    if isExploreModeActive {
