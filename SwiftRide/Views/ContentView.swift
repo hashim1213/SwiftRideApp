@@ -73,21 +73,27 @@ struct ContentView: View {
                     Text("Nearby")
                 }
                 .tag(1)
-            
+            TripPlannerView()
+                .tabItem {
+                    Image(systemName: "arrow.triangle.swap")
+                    Text("Trip planner")
+                }
+                .tag(2)
             // Third Tab for Favourites
             FavouritesView()
                 .tabItem {
                     Image(systemName: "heart.fill")
                     Text("Favourites")
                 }
-                .tag(2)
+                .tag(3)
             // Second Tab for Nearby
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Settings")
                 }
-                .tag(3)
+                .tag(4)
+           
         }
         .onAppear {
             busStopProvider.fetchBusStops()

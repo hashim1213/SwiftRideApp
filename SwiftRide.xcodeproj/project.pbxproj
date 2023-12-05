@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		F53C77412B1F0740004B8254 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77402B1F0740004B8254 /* Settings.swift */; };
 		F53C77432B1F1186004B8254 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77422B1F1186004B8254 /* MailView.swift */; };
+		F53C77452B1FC959004B8254 /* CarbonTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77442B1FC959004B8254 /* CarbonTracker.swift */; };
+		F53C77472B1FD637004B8254 /* ServiceAdvisoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77462B1FD637004B8254 /* ServiceAdvisoryProvider.swift */; };
+		F53C77492B1FD68F004B8254 /* ServiceAdvisory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77482B1FD68F004B8254 /* ServiceAdvisory.swift */; };
+		F53C774B2B1FE687004B8254 /* TripPlannerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C774A2B1FE687004B8254 /* TripPlannerProvider.swift */; };
+		F53C774D2B1FE6C0004B8254 /* TripPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C774C2B1FE6C0004B8254 /* TripPlanner.swift */; };
 		F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */; };
 		F56212ED2AEF461C0032756F /* StaticMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212EC2AEF461C0032756F /* StaticMapView.swift */; };
 		F56212F12AEF4C790032756F /* BusStopScheduleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */; };
@@ -52,6 +57,11 @@
 /* Begin PBXFileReference section */
 		F53C77402B1F0740004B8254 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		F53C77422B1F1186004B8254 /* MailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
+		F53C77442B1FC959004B8254 /* CarbonTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonTracker.swift; sourceTree = "<group>"; };
+		F53C77462B1FD637004B8254 /* ServiceAdvisoryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceAdvisoryProvider.swift; sourceTree = "<group>"; };
+		F53C77482B1FD68F004B8254 /* ServiceAdvisory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceAdvisory.swift; sourceTree = "<group>"; };
+		F53C774A2B1FE687004B8254 /* TripPlannerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPlannerProvider.swift; sourceTree = "<group>"; };
+		F53C774C2B1FE6C0004B8254 /* TripPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPlanner.swift; sourceTree = "<group>"; };
 		F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopSchedule.swift; sourceTree = "<group>"; };
 		F56212EC2AEF461C0032756F /* StaticMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticMapView.swift; sourceTree = "<group>"; };
 		F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopScheduleListView.swift; sourceTree = "<group>"; };
@@ -172,6 +182,8 @@
 				F5E1E75D2AE774D300B8B5B2 /* BusStopFeatures.swift */,
 				F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */,
 				F586199E2AD8E1D500C56D78 /* BusStopProvider.swift */,
+				F53C77462B1FD637004B8254 /* ServiceAdvisoryProvider.swift */,
+				F53C774A2B1FE687004B8254 /* TripPlannerProvider.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -181,6 +193,7 @@
 			children = (
 				F586196D2AD8E0A700C56D78 /* ContentView.swift */,
 				F586199A2AD8E12A00C56D78 /* MapView.swift */,
+				F53C77482B1FD68F004B8254 /* ServiceAdvisory.swift */,
 				F58619A02AD8E25400C56D78 /* BusStopListView.swift */,
 				F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */,
 				F5C3A1592B05F4E900E98B6F /* Notifications.swift */,
@@ -188,7 +201,9 @@
 				F56212EC2AEF461C0032756F /* StaticMapView.swift */,
 				F53C77402B1F0740004B8254 /* Settings.swift */,
 				F53C77422B1F1186004B8254 /* MailView.swift */,
+				F53C77442B1FC959004B8254 /* CarbonTracker.swift */,
 				F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */,
+				F53C774C2B1FE6C0004B8254 /* TripPlanner.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -326,11 +341,15 @@
 				F58619752AD8E0AB00C56D78 /* Persistence.swift in Sources */,
 				F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */,
 				F586196E2AD8E0A700C56D78 /* ContentView.swift in Sources */,
+				F53C774D2B1FE6C0004B8254 /* TripPlanner.swift in Sources */,
 				F53C77412B1F0740004B8254 /* Settings.swift in Sources */,
 				F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */,
 				F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */,
+				F53C77452B1FC959004B8254 /* CarbonTracker.swift in Sources */,
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,
 				F53C77432B1F1186004B8254 /* MailView.swift in Sources */,
+				F53C77492B1FD68F004B8254 /* ServiceAdvisory.swift in Sources */,
+				F53C77472B1FD637004B8254 /* ServiceAdvisoryProvider.swift in Sources */,
 				F586199B2AD8E12A00C56D78 /* MapView.swift in Sources */,
 				F586196C2AD8E0A700C56D78 /* SwiftRideApp.swift in Sources */,
 				F5C3A15A2B05F4E900E98B6F /* Notifications.swift in Sources */,
@@ -338,6 +357,7 @@
 				F5ACF8DC2AE8EBA2009AA7CE /* Favourites.swift in Sources */,
 				F58619A32AD8E33200C56D78 /* BusStop.swift in Sources */,
 				F56212F12AEF4C790032756F /* BusStopScheduleListView.swift in Sources */,
+				F53C774B2B1FE687004B8254 /* TripPlannerProvider.swift in Sources */,
 				F58619A12AD8E25400C56D78 /* BusStopListView.swift in Sources */,
 				F5E1E75E2AE774D300B8B5B2 /* BusStopFeatures.swift in Sources */,
 				F56212ED2AEF461C0032756F /* StaticMapView.swift in Sources */,

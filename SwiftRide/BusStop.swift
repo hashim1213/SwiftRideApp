@@ -70,9 +70,18 @@ struct Status: Identifiable {
 
   
 }
+struct ServiceAdvisory: Identifiable {
+    let id: String
+    let priority: Int
+    let title: String
+    let body: String
+    let category: String
+    let updatedAt: Date
+}
+
   
 //unused model for trip planner feature to be implimented in the future
-/*
+
 struct Trip: Identifiable {
     let id: String
     let origin: String
@@ -82,17 +91,18 @@ struct Trip: Identifiable {
     let numberOfTransfers: Int
 }
 
-struct TripPlanRequest {
-    let origin: String
-    let destination: String
-    let date: String?
-    let time: String?
-    let mode: String
-    let walkSpeed: Float?
-    let maxWalkTime: Int?
-    let minTransferWait: Int?
-    let maxTransferWait: Int?
-    let maxTransfers: Int?
-}
-*/
+ struct TripPlanRequest {
+     let origin: String
+     let destination: String
+     let date: String?
+     let time: String?
+     let mode: String
+     let walkSpeed: Float?
+     let maxWalkTime: Int?
+     let minTransferWait: Int?
+     let maxTransferWait: Int?
+     let maxTransfers: Int?
+ }
+
+
 

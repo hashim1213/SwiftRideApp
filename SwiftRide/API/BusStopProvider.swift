@@ -33,13 +33,18 @@ class BusStopProvider: ObservableObject {
     @Published var isLoading = false
     @Published var busStops: [BusStop] = []
     var locationManager: LocationManager
+    private var busStopsCache: [String: [BusStop]] = [:]
     
     private init() {
         self.locationManager = LocationManager.shared
         fetchBusStops()
     }
     
+  
+
+
     func fetchBusStops(completion: (() -> Void)? = nil) {
+        
         isLoading = true // Start loading
         
         guard let location = locationManager.currentLocation else {
@@ -54,8 +59,9 @@ class BusStopProvider: ObservableObject {
         
         print("Fetching bus stops for Latitude: \(lat), Longitude: \(lon)")
         
-        let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=1000&api-key=BfrWUj9_WlAd-YuTLN6v"
-        
+    let radius = UserDefaults.standard.double(forKey: "busStopSearchRadius")
+    let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=\(Int(radius))&api-key=BfrWUj9_WlAd-YuTLN6v"
+
         if let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { (data, response, error) in
                 if let data = data {
@@ -83,28 +89,43 @@ class BusStopProvider: ObservableObject {
 extension BusStopProvider {
     
     func fetchBusStopsForRegion(lat: Double, lon: Double, radius: Int, completion: (() -> Void)? = nil) {
-      
-        
+        let cacheKey = "\(lat),\(lon),\(radius)"
+
+        // Check if the data is already in the cache
+        if let cachedStops = busStopsCache[cacheKey] {
+            self.busStops = cachedStops
+            completion?()
+            return
+        }
+
         isLoading = true
+
         let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=\(radius)&api-key=BfrWUj9_WlAd-YuTLN6v"
 
         if let url = URL(string: urlString) {
-            URLSession.shared.dataTask(with: url) { (data, response, error) in
+            URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
+                guard let self = self else { return }
+
                 if let data = data {
-                    
                     let parser = XMLParser(data: data)
                     let delegate = BusStopParser()
                     parser.delegate = delegate
                     parser.parse()
-                    DispatchQueue.main.async { [weak self] in
-                        self?.busStops.removeAll()  // Clear the array
-                        self?.busStops = delegate.busStops
-                        self?.isLoading = false // Stop loading when data is fetched
+
+                    DispatchQueue.main.async {
+                        self.busStopsCache[cacheKey] = delegate.busStops // Cache the fetched data
+                        self.busStops = delegate.busStops
+                        self.isLoading = false
+                        completion?()
+                    }
+                } else if let error = error {
+                    print("Error fetching bus stops: \(error)")
+                    DispatchQueue.main.async {
+                        self.isLoading = false
                         completion?()
                     }
                 }
-            }
-            .resume()
+            }.resume()
         }
     }
 }
