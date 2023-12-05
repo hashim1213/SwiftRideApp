@@ -9,12 +9,10 @@ struct ContentView: View {
     @State private var selectedTab = 0 // State to track selected tab
     @State private var isLoading = false  // State to track loading
     @State private var isExploreModeActive = false
-    
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 49.8943, longitude: -97.1388),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
-    
     init() {
         requestNotificationPermission()
         let appearance = UITabBarAppearance()
@@ -83,10 +81,18 @@ struct ContentView: View {
                     Text("Favourites")
                 }
                 .tag(2)
+            // Second Tab for Nearby
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Settings")
+                }
+                .tag(3)
         }
         .onAppear {
             busStopProvider.fetchBusStops()
         }
+        
     }
     
     private func fetchBusStops() {

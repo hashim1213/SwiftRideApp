@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F53C77412B1F0740004B8254 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77402B1F0740004B8254 /* Settings.swift */; };
 		F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */; };
 		F56212ED2AEF461C0032756F /* StaticMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212EC2AEF461C0032756F /* StaticMapView.swift */; };
 		F56212F12AEF4C790032756F /* BusStopScheduleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */; };
@@ -48,6 +49,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F53C77402B1F0740004B8254 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		F54633B92AE6F0D70036F9FD /* BusStopSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopSchedule.swift; sourceTree = "<group>"; };
 		F56212EC2AEF461C0032756F /* StaticMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticMapView.swift; sourceTree = "<group>"; };
 		F56212F02AEF4C790032756F /* BusStopScheduleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusStopScheduleListView.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 				F5C3A1592B05F4E900E98B6F /* Notifications.swift */,
 				F5ACF8E82AEA3ADA009AA7CE /* NearbyStops.swift */,
 				F56212EC2AEF461C0032756F /* StaticMapView.swift */,
+				F53C77402B1F0740004B8254 /* Settings.swift */,
 				F5ACF8DB2AE8EBA2009AA7CE /* Favourites.swift */,
 			);
 			path = Views;
@@ -320,6 +323,7 @@
 				F58619752AD8E0AB00C56D78 /* Persistence.swift in Sources */,
 				F54633BA2AE6F0D70036F9FD /* BusStopSchedule.swift in Sources */,
 				F586196E2AD8E0A700C56D78 /* ContentView.swift in Sources */,
+				F53C77412B1F0740004B8254 /* Settings.swift in Sources */,
 				F5ACF8E92AEA3ADA009AA7CE /* NearbyStops.swift in Sources */,
 				F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */,
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,

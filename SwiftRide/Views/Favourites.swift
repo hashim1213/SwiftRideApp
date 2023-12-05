@@ -1,4 +1,3 @@
-//Favourites tab
 import SwiftUI
 import CoreData
 import MapKit
@@ -10,12 +9,16 @@ struct FavouritesView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \FavouriteBusStop.name, ascending: true)]
     ) var favourites: FetchedResults<FavouriteBusStop>
 
+    @State private var selectedBusStop: BusStop?  // State for the selected bus stop
+
     var body: some View {
-        NavigationView { // Ensure there is a NavigationView
+        NavigationView {
             List {
                 ForEach(favourites, id: \.self) { favourite in
-                    // The NavigationLink should be here
-                    NavigationLink(destination: BusStopScheduleListView(selectedBusStop: BusStop(favourite: favourite))) {
+                    // Use a button or other view to set the selected bus stop
+                    Button(action: {
+                        self.selectedBusStop = BusStop(favourite: favourite)
+                    }) {
                         ThumbnailView(favourite: favourite)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(10)
@@ -26,13 +29,15 @@ struct FavouritesView: View {
                 .onDelete(perform: deleteFavourite)
                 .listRowSeparator(.hidden)
             }
+            .sheet(item: $selectedBusStop) { stop in
+                // Present the BusStopScheduleListView for the selected bus stop
+                BusStopScheduleListView(selectedBusStop: stop)
+            }
             .navigationTitle("Favourites")
             .listStyle(PlainListStyle())
             .listRowSeparator(.hidden)
         }
     }
-  
-
 
     private func deleteFavourite(at offsets: IndexSet) {
         for index in offsets {

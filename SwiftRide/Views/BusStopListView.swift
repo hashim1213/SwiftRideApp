@@ -9,7 +9,9 @@ struct BusStopListView: View {
     @State private var showingSheet = false
     @State private var selectedBus: ScheduledStop?
     @State private var showingFavoriteAlert = false
-    
+    //settings
+    @AppStorage("showEstimatedTime") var showEstimatedTime = true
+    @AppStorage("showDate") var showDate = true
     
     init(selectedBusStop: BusStop, onDismiss: @escaping () -> Void) {
         self.selectedBusStop = selectedBusStop
@@ -119,7 +121,7 @@ struct BusStopListView: View {
                         .padding(.horizontal, 20)
                         // Schedule
                         ForEach(scheduledStopProvider.scheduledStops.sorted(by: { $0.scheduledArrival < $1.scheduledArrival })) { scheduledStop in
-                            CardView(scheduledStop: scheduledStop)
+                            CardView(showEstimatedTime: showEstimatedTime, showDate: showDate, scheduledStop: scheduledStop)
                              
                         }
                         Text("Not seeing any buses? There may be an issue with the retrieval process or there may be no buses scheduled. Please try pressing the refresh button and wait 30 seconds.")
@@ -164,6 +166,8 @@ struct BusStopListView: View {
 
  }
 struct CardView: View {
+    var showEstimatedTime: Bool
+    var showDate: Bool
     var scheduledStop: ScheduledStop
     @State private var isReminderSet = false
     // Function to determine text color based on time
@@ -253,49 +257,56 @@ struct CardView: View {
                                    }
                       
                     }
-                    HStack {
-                        Text("Scheduled Arrival:")
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            if let minutesToScheduled = scheduledStop.minutesToScheduledArrival {
-                                if minutesToScheduled == -1 {
-                                    Text("N/A")
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Color.gray)
-                                } else {
-                                    Text(minutesToScheduled < 0 ? "Late" : (minutesToScheduled == 0 ? "Due" : convertMinutesToHoursAndMinutes(minutes: minutesToScheduled)))
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(colorForTime(minutesToScheduled))
-                                }
-                                if let timeString = getTime(from: scheduledStop.scheduledArrival) {
-                                    Text(timeString)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-
-                    HStack {
-                        Text("Estimated Arrival:")
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            if let minutesToEstimated = scheduledStop.minutesToEstimatedArrival {
-                                if minutesToEstimated == -1 {
-                                    Text("Late")
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Color.gray)
-                                } else {
-                                    Text(minutesToEstimated == 0 ? "Now" : convertMinutesToHoursAndMinutes(minutes: minutesToEstimated))
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(colorForTime(minutesToEstimated))
-                                }
-                                if let timeString = getTime(from: scheduledStop.estimatedArrival) {
-                                    Text(timeString)
-                                        .font(.caption)
+                    if showEstimatedTime {
+                        HStack {
+                            Text("Scheduled Arrival:")
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                if let minutesToScheduled = scheduledStop.minutesToScheduledArrival {
+                                    if minutesToScheduled == -1 {
+                                        Text("N/A")
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(Color.gray)
+                                    } else {
+                                        Text(minutesToScheduled < 0 ? "Late" : (minutesToScheduled == 0 ? "Due" : convertMinutesToHoursAndMinutes(minutes: minutesToScheduled)))
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(colorForTime(minutesToScheduled))
+                                    }
+                                    if showDate {
+                                        if let timeString = getTime(from: scheduledStop.scheduledArrival) {
+                                            Text(timeString)
+                                                .font(.caption)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                   
+                        HStack {
+                            Text("Estimated Arrival:")
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                if let minutesToEstimated = scheduledStop.minutesToEstimatedArrival {
+                                    if minutesToEstimated == -1 {
+                                        Text("Late")
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(Color.gray)
+                                    } else {
+                                        Text(minutesToEstimated == 0 ? "Now" : convertMinutesToHoursAndMinutes(minutes: minutesToEstimated))
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(colorForTime(minutesToEstimated))
+                                    }
+                                    if showDate {
+                                        if let timeString = getTime(from: scheduledStop.estimatedArrival) {
+                                            Text(timeString)
+                                                .font(.caption)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    
                     
                     HStack(spacing: 20) {
                         Spacer()  // push the icons to the right

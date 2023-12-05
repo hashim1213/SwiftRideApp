@@ -54,7 +54,7 @@ class BusStopProvider: ObservableObject {
         
         print("Fetching bus stops for Latitude: \(lat), Longitude: \(lon)")
         
-        let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=200&api-key=BfrWUj9_WlAd-YuTLN6v"
+        let urlString = "https://api.winnipegtransit.com/v3/stops?usage=long&lon=\(lon)&lat=\(lat)&distance=1000&api-key=BfrWUj9_WlAd-YuTLN6v"
         
         if let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { (data, response, error) in

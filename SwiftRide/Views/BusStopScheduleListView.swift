@@ -8,7 +8,9 @@ struct BusStopScheduleListView: View {
     @ObservedObject var busStopFeature: BusStopFeatures
     @State private var showingSheet = false
     @State private var selectedBus: ScheduledStop?
-
+    @AppStorage("showEstimatedTime") var showEstimatedTime = true
+    @AppStorage("showDate") var showDate = true
+    
     init(selectedBusStop: BusStop) {
         self.selectedBusStop = selectedBusStop
         self.scheduledStopProvider = ScheduledStopProvider(stopId: Int(selectedBusStop.number))
@@ -19,7 +21,7 @@ struct BusStopScheduleListView: View {
         VStack {
             ScrollView {
                 ForEach(sortedStops.prefix(30), id: \.self) { scheduledStop in
-                    CardView(scheduledStop: scheduledStop)
+                    CardView(showEstimatedTime: showEstimatedTime, showDate: showDate, scheduledStop: scheduledStop)
                         
                 }
 
@@ -57,7 +59,7 @@ extension BusStop {
             utmY: favourite.utmY ?? "",
             latitude: favourite.latitude,
             longitude: favourite.longitude,
-            distances: favourite.distances 
+            distances: favourite.distances
             
         )
     }
