@@ -39,3 +39,6 @@ SwiftUI framework.
 
 Clone the repository, open the project in Xcode, 
 and run it on a simulator or a real device.
+
+App is now Live on the app store!
+https://apps.apple.com/ca/app/swiftride-winnipeg-transit/id6472630133
