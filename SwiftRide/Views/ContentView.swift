@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var selectedTab = 0 // State to track selected tab
     @State private var isLoading = false  // State to track loading
     @State private var isExploreModeActive = false
+    @State private var busStopSearchRadius: Double = 1000
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 49.8943, longitude: -97.1388),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -36,15 +37,19 @@ struct ContentView: View {
             ZStack {
                 VStack {
                     // Map View
-                    MapView(
-                             busStops: $busStopProvider.busStops,
-                             selectedBusStop: $selectedBusStop,
-                             isLoading: $isLoading,
-                             isExploreModeActive: $isExploreModeActive,
-                             currentLocation: $locationManager.currentLocation // Passing the current location
-                         )
+                    
+                        MapView(
+                            busStops: $busStopProvider.busStops,
+                            selectedBusStop: $selectedBusStop,
+                            isLoading: $isLoading,
+                            isExploreModeActive: $isExploreModeActive,
+                            currentLocation: $locationManager.currentLocation,
+                            busStopSearchRadius: $busStopSearchRadius // Passing the current location
+                            
+                        )
                         .frame(maxHeight: .infinity)
                         .edgesIgnoringSafeArea(.top)
+                    
                     // If a bus stop is selected, show its details
                     if let stop = selectedBusStop {
                         BusStopListView(selectedBusStop: stop, onDismiss: {
@@ -72,27 +77,31 @@ struct ContentView: View {
                     Image(systemName: "location.fill")
                     Text("Nearby")
                 }
+            
                 .tag(1)
+            /*
             TripPlannerView()
                 .tabItem {
                     Image(systemName: "arrow.triangle.swap")
                     Text("Trip planner")
                 }
+            
                 .tag(2)
+             */
             // Third Tab for Favourites
             FavouritesView()
                 .tabItem {
                     Image(systemName: "heart.fill")
                     Text("Favourites")
                 }
-                .tag(3)
+                .tag(2)
             // Second Tab for Nearby
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Settings")
                 }
-                .tag(4)
+                .tag(3)
            
         }
         .onAppear {

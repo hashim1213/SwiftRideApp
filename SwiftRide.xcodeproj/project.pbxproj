@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F531DC002BB0A299009D0842 /* LiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DBFF2BB0A299009D0842 /* LiveActivityView.swift */; };
+		F531DC232BB0BFDF009D0842 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F531DC072BB0B9BE009D0842 /* WidgetKit.framework */; };
+		F531DC242BB0BFDF009D0842 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F531DC092BB0B9BF009D0842 /* SwiftUI.framework */; };
+		F531DC272BB0BFDF009D0842 /* BusHomeBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */; };
+		F531DC292BB0BFDF009D0842 /* BusHomeLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */; };
+		F531DC2B2BB0BFDF009D0842 /* BusHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC2A2BB0BFDF009D0842 /* BusHome.swift */; };
+		F531DC2D2BB0BFE2009D0842 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */; };
+		F531DC312BB0BFE2009D0842 /* BusHomeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F53C77412B1F0740004B8254 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77402B1F0740004B8254 /* Settings.swift */; };
 		F53C77432B1F1186004B8254 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77422B1F1186004B8254 /* MailView.swift */; };
 		F53C77452B1FC959004B8254 /* CarbonTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53C77442B1FC959004B8254 /* CarbonTracker.swift */; };
@@ -38,6 +46,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		F531DC2F2BB0BFE2009D0842 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F58619602AD8E0A700C56D78 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F531DC212BB0BFDF009D0842;
+			remoteInfo = BusHomeExtension;
+		};
 		F586197E2AD8E0AB00C56D78 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F58619602AD8E0A700C56D78 /* Project object */;
@@ -54,7 +69,30 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		F531DC1D2BB0B9C2009D0842 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F531DC312BB0BFE2009D0842 /* BusHomeExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		F531DBFF2BB0A299009D0842 /* LiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityView.swift; sourceTree = "<group>"; };
+		F531DC072BB0B9BE009D0842 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		F531DC092BB0B9BF009D0842 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BusHomeExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHomeBundle.swift; sourceTree = "<group>"; };
+		F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHomeLiveActivity.swift; sourceTree = "<group>"; };
+		F531DC2A2BB0BFDF009D0842 /* BusHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHome.swift; sourceTree = "<group>"; };
+		F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F531DC2E2BB0BFE2009D0842 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F53C77402B1F0740004B8254 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		F53C77422B1F1186004B8254 /* MailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
 		F53C77442B1FC959004B8254 /* CarbonTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonTracker.swift; sourceTree = "<group>"; };
@@ -90,6 +128,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		F531DC1F2BB0BFDF009D0842 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F531DC242BB0BFDF009D0842 /* SwiftUI.framework in Frameworks */,
+				F531DC232BB0BFDF009D0842 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F58619652AD8E0A700C56D78 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -114,12 +161,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F531DC062BB0B9BE009D0842 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F531DC072BB0B9BE009D0842 /* WidgetKit.framework */,
+				F531DC092BB0B9BF009D0842 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F531DC252BB0BFDF009D0842 /* BusHome */ = {
+			isa = PBXGroup;
+			children = (
+				F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */,
+				F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */,
+				F531DC2A2BB0BFDF009D0842 /* BusHome.swift */,
+				F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */,
+				F531DC2E2BB0BFE2009D0842 /* Info.plist */,
+			);
+			path = BusHome;
+			sourceTree = "<group>";
+		};
 		F586195F2AD8E0A700C56D78 = {
 			isa = PBXGroup;
 			children = (
 				F586196A2AD8E0A700C56D78 /* SwiftRide */,
 				F58619802AD8E0AB00C56D78 /* SwiftRideTests */,
 				F586198A2AD8E0AB00C56D78 /* SwiftRideUITests */,
+				F531DC252BB0BFDF009D0842 /* BusHome */,
+				F531DC062BB0B9BE009D0842 /* Frameworks */,
 				F58619692AD8E0A700C56D78 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +200,7 @@
 				F58619682AD8E0A700C56D78 /* SwiftRide.app */,
 				F586197D2AD8E0AB00C56D78 /* SwiftRideTests.xctest */,
 				F58619872AD8E0AB00C56D78 /* SwiftRideUITests.xctest */,
+				F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,6 +263,7 @@
 			isa = PBXGroup;
 			children = (
 				F586196D2AD8E0A700C56D78 /* ContentView.swift */,
+				F531DBFF2BB0A299009D0842 /* LiveActivityView.swift */,
 				F586199A2AD8E12A00C56D78 /* MapView.swift */,
 				F53C77482B1FD68F004B8254 /* ServiceAdvisory.swift */,
 				F58619A02AD8E25400C56D78 /* BusStopListView.swift */,
@@ -211,6 +283,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		F531DC212BB0BFDF009D0842 /* BusHomeExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F531DC322BB0BFE2009D0842 /* Build configuration list for PBXNativeTarget "BusHomeExtension" */;
+			buildPhases = (
+				F531DC1E2BB0BFDF009D0842 /* Sources */,
+				F531DC1F2BB0BFDF009D0842 /* Frameworks */,
+				F531DC202BB0BFDF009D0842 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BusHomeExtension;
+			productName = BusHomeExtension;
+			productReference = F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		F58619672AD8E0A700C56D78 /* SwiftRide */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F58619912AD8E0AB00C56D78 /* Build configuration list for PBXNativeTarget "SwiftRide" */;
@@ -218,10 +307,12 @@
 				F58619642AD8E0A700C56D78 /* Sources */,
 				F58619652AD8E0A700C56D78 /* Frameworks */,
 				F58619662AD8E0A700C56D78 /* Resources */,
+				F531DC1D2BB0B9C2009D0842 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F531DC302BB0BFE2009D0842 /* PBXTargetDependency */,
 			);
 			name = SwiftRide;
 			productName = SwiftRide;
@@ -271,9 +362,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 1520;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					F531DC212BB0BFDF009D0842 = {
+						CreatedOnToolsVersion = 15.2;
+					};
 					F58619672AD8E0A700C56D78 = {
 						CreatedOnToolsVersion = 15.0;
 					};
@@ -303,11 +397,20 @@
 				F58619672AD8E0A700C56D78 /* SwiftRide */,
 				F586197C2AD8E0AB00C56D78 /* SwiftRideTests */,
 				F58619862AD8E0AB00C56D78 /* SwiftRideUITests */,
+				F531DC212BB0BFDF009D0842 /* BusHomeExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		F531DC202BB0BFDF009D0842 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F531DC2D2BB0BFE2009D0842 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F58619662AD8E0A700C56D78 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -334,6 +437,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F531DC1E2BB0BFDF009D0842 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F531DC292BB0BFDF009D0842 /* BusHomeLiveActivity.swift in Sources */,
+				F531DC2B2BB0BFDF009D0842 /* BusHome.swift in Sources */,
+				F531DC272BB0BFDF009D0842 /* BusHomeBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F58619642AD8E0A700C56D78 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -347,6 +460,7 @@
 				F5ACF8E12AE8F580009AA7CE /* SwiftRide.xcdatamodeld in Sources */,
 				F53C77452B1FC959004B8254 /* CarbonTracker.swift in Sources */,
 				F5ACF8E32AE9913D009AA7CE /* CoreDataManager .swift in Sources */,
+				F531DC002BB0A299009D0842 /* LiveActivityView.swift in Sources */,
 				F53C77432B1F1186004B8254 /* MailView.swift in Sources */,
 				F53C77492B1FD68F004B8254 /* ServiceAdvisory.swift in Sources */,
 				F53C77472B1FD637004B8254 /* ServiceAdvisoryProvider.swift in Sources */,
@@ -384,6 +498,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		F531DC302BB0BFE2009D0842 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F531DC212BB0BFDF009D0842 /* BusHomeExtension */;
+			targetProxy = F531DC2F2BB0BFE2009D0842 /* PBXContainerItemProxy */;
+		};
 		F586197F2AD8E0AB00C56D78 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = F58619672AD8E0A700C56D78 /* SwiftRide */;
@@ -397,6 +516,62 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		F531DC332BB0BFE2009D0842 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VW2F87BNYU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BusHome/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BusHome;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide.BusHome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F531DC342BB0BFE2009D0842 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VW2F87BNYU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BusHome/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BusHome;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide.BusHome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		F586198F2AD8E0AB00C56D78 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -519,27 +694,33 @@
 		F58619922AD8E0AB00C56D78 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftRide/Preview Content\"";
 				DEVELOPMENT_TEAM = VW2F87BNYU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftRide/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftRide;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "find nearest bus stops";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -551,27 +732,33 @@
 		F58619932AD8E0AB00C56D78 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftRide/Preview Content\"";
 				DEVELOPMENT_TEAM = VW2F87BNYU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftRide/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftRide;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "find nearest bus stops";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "find nearest bus stops";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -659,6 +846,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		F531DC322BB0BFE2009D0842 /* Build configuration list for PBXNativeTarget "BusHomeExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F531DC332BB0BFE2009D0842 /* Debug */,
+				F531DC342BB0BFE2009D0842 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F58619632AD8E0A700C56D78 /* Build configuration list for PBXProject "SwiftRide" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

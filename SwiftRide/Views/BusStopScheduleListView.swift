@@ -19,6 +19,12 @@ struct BusStopScheduleListView: View {
 
     var body: some View {
         VStack {
+            // Capsule shape as a pull-down indicator
+              Capsule()
+                  .frame(width: 60, height: 6)
+                  .foregroundColor(.secondary)
+                  .padding(5)
+            
             ScrollView {
                 ForEach(sortedStops.prefix(30), id: \.self) { scheduledStop in
                     CardView(showEstimatedTime: showEstimatedTime, showDate: showDate, scheduledStop: scheduledStop)

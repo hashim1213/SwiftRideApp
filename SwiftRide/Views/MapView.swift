@@ -10,15 +10,19 @@ struct MapView: View {
        @Binding var isLoading: Bool
        @Binding var isExploreModeActive: Bool
        @Binding var currentLocation: CLLocation? // Binding to current location
+       @Binding var busStopSearchRadius: Double // Assume this is your circle's resizable radius
        @StateObject var busStopProvider = BusStopProvider.shared
        @State private var equatableRegion: EquatableRegion
 
-       init(busStops: Binding<[BusStop]>, selectedBusStop: Binding<BusStop?>, isLoading: Binding<Bool>, isExploreModeActive: Binding<Bool>, currentLocation: Binding<CLLocation?>) {
+    
+
+       init(busStops: Binding<[BusStop]>, selectedBusStop: Binding<BusStop?>, isLoading: Binding<Bool>, isExploreModeActive: Binding<Bool>, currentLocation: Binding<CLLocation?>,busStopSearchRadius: Binding<Double>) {
            self._busStops = busStops
            self._selectedBusStop = selectedBusStop
            self._isLoading = isLoading
            self._isExploreModeActive = isExploreModeActive
            self._currentLocation = currentLocation
+           self._busStopSearchRadius = busStopSearchRadius
 
            // Initialize the region based on the current location
            if let location = currentLocation.wrappedValue {
@@ -33,6 +37,7 @@ struct MapView: View {
                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
                )))
            }
+          
        }
 
     private func fetchBusStopsForRegion(_ region: MKCoordinateRegion) {
@@ -47,21 +52,24 @@ struct MapView: View {
         }
     }
 
+   
     var body: some View {
-        Map(coordinateRegion: $equatableRegion.region, showsUserLocation: true, annotationItems: busStops) { stop in
-            MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: stop.latitude, longitude: stop.longitude)) {
-                Image(systemName: "bus.fill")
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.blue.opacity(0.8))
-                    .clipShape(Capsule())
-                    .onTapGesture {
-                        selectedBusStop = stop
-                    }
+       
+            Map(coordinateRegion: $equatableRegion.region, showsUserLocation: true, annotationItems: busStops) { stop in
+                MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: stop.latitude, longitude: stop.longitude)) {
+                    Image(systemName: "bus.fill")
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.blue.opacity(0.8))
+                        .clipShape(Capsule())
+                        .onTapGesture {
+                            selectedBusStop = stop
+                        }
+                }
             }
-        }
-      
+        
         .onAppear {
+            
             if let currentLocation = currentLocation {
                 equatableRegion.region.center = currentLocation.coordinate
                 equatableRegion.region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -70,6 +78,7 @@ struct MapView: View {
             if isExploreModeActive {
                 fetchBusStopsForRegion(equatableRegion.region)
             }
+            
         }
 
         .onChange(of: equatableRegion) { newRegionWrapper in
@@ -77,18 +86,24 @@ struct MapView: View {
                    if isExploreModeActive {
                        fetchBusStopsForRegion(newRegion)
                    }
+          
                }
+       
          .onAppear {
                    if isExploreModeActive {
                        fetchBusStopsForRegion(equatableRegion.region)
                    }
+           
                }
         if isLoading {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle())
                 .scaleEffect(1.5, anchor: .center)
         }
+            
     }
+   
+ 
 }
 
 struct EquatableRegion: Equatable {
@@ -101,3 +116,18 @@ struct EquatableRegion: Equatable {
         lhs.region.span.longitudeDelta == rhs.region.span.longitudeDelta
     }
 }
+extension View {
+    
+    
+    @ViewBuilder
+    func applyMapStyle() -> some View {
+        if #available(iOS 17.0, *) {
+            self.mapStyle(.standard(elevation: .realistic))
+            
+        } else {
+            self // Return the view unmodified for earlier iOS versions
+        }
+    }
+}
+
+

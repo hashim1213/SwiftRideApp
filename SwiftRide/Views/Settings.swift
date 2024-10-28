@@ -15,8 +15,8 @@ struct SettingsView: View {
             Form {
                 DisplayPreferencesSection()
                 BusStopSearchRadiusSection() // Add the radius section
-                ServiceAdvisorySection()
-                CarbonTrackerSection()
+              // ServiceAdvisorySection()
+               // CarbonTrackerSection()
                 NetworkStatusSection()
                 FeedbackSection()
                 VersionHistorySection()

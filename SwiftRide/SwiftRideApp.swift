@@ -1,5 +1,5 @@
+import WidgetKit
 import SwiftUI
-
 @main
 struct SwiftRideApp: App {
     let coreDataManager = CoreDataManager.shared
@@ -9,5 +9,8 @@ struct SwiftRideApp: App {
             ContentView()
                 .environment(\.managedObjectContext, coreDataManager.container.viewContext)
         }
+     
     }
 }
+
+

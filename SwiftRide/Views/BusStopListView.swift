@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import ActivityKit
 
 struct BusStopListView: View {
     var selectedBusStop: BusStop  // Injected
@@ -143,6 +144,7 @@ struct BusStopListView: View {
             self.busStopFeature.fetchBusStopFeatures(stopId: Int(self.selectedBusStop.number))
               }
     }
+
     // Fetch data when the view appears
     func favoriteBusStop() {
         self.showingFavoriteAlert = true
@@ -221,6 +223,7 @@ struct CardView: View {
             return "\(minutes) mins"
         }
     }
+
     var body: some View {
         
         VStack {
@@ -236,9 +239,27 @@ struct CardView: View {
                         Spacer()
                         // Reminder Button with an Icon
                           Button(action: {
+                              /*
                               scheduleNotification(for: scheduledStop)
                               isReminderSet = true // Set the state to true to show the alert
-                            
+                              */
+                              let attributes = BusArrivalAttributes()
+                              let state = BusArrivalAttributes.ContentState(
+                                  busNumber: scheduledStop.number,
+                                  scheduledArrival: scheduledStop.scheduledArrival ,
+                                  estimatedArrival: scheduledStop.estimatedArrival 
+                              )
+
+                              do {
+                                  let activity = try Activity<BusArrivalAttributes>.request(
+                                    attributes: attributes,
+                                    contentState: state, pushType: nil)
+                                      
+                                  print("Live Activity started: \(activity.id)")
+                              } catch {
+                                  print("Failed to start Live Activity: \(error)")
+                              }
+
                           }) {
                               Image(systemName: "bell")
                                   .resizable()
@@ -334,4 +355,35 @@ struct CardView: View {
          
         }
     }
+    // Example function to update Live Activity
+    func updateLiveActivity(with activity: Activity<BusArrivalAttributes>, busStop: ScheduledStop) {
+        Task {
+            do {
+                let updatedState = BusArrivalAttributes.ContentState(
+                    busNumber: busStop.number,
+                    scheduledArrival: busStop.scheduledArrival,
+                    estimatedArrival: busStop.estimatedArrival
+                )
+                
+                try await activity.update(using: updatedState)
+                print("Live Activity updated successfully.")
+            } catch {
+                print("Failed to update Live Activity: \(error)")
+            }
+        }
+    }
+
+    // Example function to end Live Activity
+    func endLiveActivity(_ activity: Activity<BusArrivalAttributes>) {
+        Task {
+            do {
+                try await activity.end(dismissalPolicy: .immediate)
+                print("Live Activity ended successfully.")
+            } catch {
+                print("Failed to end Live Activity: \(error)")
+            }
+        }
+    }
+
+
 }
