@@ -2,7 +2,36 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+	<key>NSMotionUsageDescription</key>
+	<string>SwiftRide counts your steps to guide you through the underground PATH where GPS doesn't reach.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>to set bus reminders</string>
+	<string>SwiftRide reminds you before your bus or train leaves.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.HashimFarooq.SwiftRide</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>swiftride</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<!-- London Transit publishes its GTFS-Realtime feed over HTTP only. -->
+			<key>gtfs.ltconline.ca</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

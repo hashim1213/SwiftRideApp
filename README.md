@@ -1,44 +1,61 @@
-# SwiftRideApp
+# SwiftRide
 
 💡**Overview**
 
-Swift Ride is an iOS application designed to provide real-time information about bus stops in Winnipeg Manitoba. It features an interactive map, a list of nearby bus stops, and a favorites section for easy access to frequently used stops. It uses Winnipeg Bus Tranist Open Data API. 
+SwiftRide is an iOS app for live public-transit departures across Canada. Open it and you get a map of what's around you, with a sheet of nearby lines showing big, colour-coded countdowns. It covers 20 agencies in 18 cities and regions, including the TTC, GO Transit and UP Express.
 
 📱**Features**
-- Interactive Map: View bus stops on a map, with real-time updates and detailed information for each stop.
-- Explore: View all bus stops on the map as your interact with the map. 
-- Nearby Bus Stops: Discover bus stops closest to your current location.
-- Favorites: Save your most-used bus stops for quick and easy access.
-- Location Services: Utilize the device's location to find nearby bus stops and display current location details.
-- Reminders: Set reminders for buses and get notifctaions for when your bus will arrive. 
+- **Nearby lines**: one card per route and direction, from the closest stop, with live countdowns.
+- **Live map**: stops plus live vehicles (TTC streetcars and buses, GO trains across the network, and more). Pan anywhere and tap "Search this area".
+- **Stop boards**: departures by line or by time, GO platforms and delays, and service alerts for that stop. Use "Plan ahead" to see the timetable for another day and time.
+- **GO Train & UP Express**: Metrolinx next-service data with platform and on-time status.
+- **Trip planner ("Where to?")**: station to station (e.g. Milton GO → Union), stop to address, or from your location. Options show leave and arrive times, transfers, walking, live status and GO platforms, and a timeline view. Use **Plan ahead** to pick any day and time (e.g. Monday 8:00 AM), then "Later trips" for more. Switch to **Arrive by** to get the latest trips that still get you there in time ("Earlier trips" for more).
+- **Trip guide**: tap "Start trip" for step-by-step guidance (walk to the stop, board, "Get off in 3 stops", upcoming connections). Progress comes from the timetable and live times, refined by GPS only when the fix is good, so it keeps working in tunnels. Board and get-off alerts are local notifications, so they fire with no signal.
+- **Live Activity & Dynamic Island**: a started trip shows on the Lock Screen and in the Dynamic Island with the current step ("Walk to Union", "Get off in 3 stops"), a countdown, the next connection and whole-trip progress. It moves on to the next step by itself while the app keeps a background location session, and timers keep counting with no signal. Tap it to reopen the guide.
+- **Offline mode**: with no connection the app says so and falls back to the bundled timetables for departures and trip planning (every agency except Winnipeg).
+- **Toronto PATH**: indoor directions through the underground PATH with no GPS or signal. Pick where you are from nearby signs (station, entrance or shop), get turn-by-turn steps with landmarks, and an optional step-free route. On a device, the guide uses the pedometer to count down each step and the compass to point the way.
+- **Saved trips**: bookmark a trip and its reverse ("Trip back"). The next departure shows live on the home sheet.
+- **Widgets**: "Next trip" (small, medium, Lock Screen rectangular and inline) and "Saved stop" (small, medium). Tap a widget to open that trip or stop.
+- **Saved stops**: one tap from the home sheet, each with its next departures.
+- **Reminders**: a notification 0–15 minutes before a specific departure.
+- **Service alerts**: filtered to the lines and stops around you.
+- **Search**: by stop name or the number on the pole, across every nearby agency.
+- Light and dark mode, and works without location (pick a city).
 
+🗺️**Coverage**
+
+| Province | Cities / regions | Agencies |
+|---|---|---|
+| BC | Victoria, Kelowna, Kamloops, Nanaimo, Abbotsford & Chilliwack | BC Transit |
+| AB | Calgary, Edmonton | Calgary Transit, ETS |
+| MB | Winnipeg | Winnipeg Transit |
+| ON | Toronto, York Region, Mississauga, Durham, Hamilton, Barrie, London, Kingston, Windsor | TTC, GO Transit, UP Express, YRT/Viva, MiWay, DRT, HSR, Barrie Transit, LTC, Kingston Transit, Transit Windsor |
+| NS | Halifax | Halifax Transit |
 
 🎛️**Technical Details**
 
-- Built with SwiftUI.
-- Data locally stored in CoreData 
-- Uses a singleton pattern for managing bus stop data.
-- Implements floating action buttons for refreshing data and accessing location information.
-- Fetches and displays bus stop data upon app launch and via user interactions.
-  
-📕**How to Use**
+- SwiftUI and MapKit, iOS 17+, using the Observation framework and async/await.
+- `Shared/Core/Catalog.swift`: every agency and city. Add a city by adding an entry there plus its data file.
+- Data sources (`Shared/Data/`):
+  - **Winnipeg**: Winnipeg Transit Open Data API v3.
+  - **TTC**: complete TTC GTFS plus the new `gtfsrt.ttc.ca` feeds (surface and **subway** trip updates, alerts), with Umo/NextBus as a fallback. Vehicles come from bustime.
+  - **GO Transit**: Metrolinx Open Data API (`Stop/NextService`, service alerts, live train positions).
+  - **Everyone else**: bundled GTFS stops and open GTFS-Realtime feeds, read by a small built-in protobuf decoder (`GTFSRealtime.swift`), with no third-party dependencies.
+- Stops and routes ship in `SwiftRide/Resources/TransitData/*.json` (about 4 MB), generated by `Tools/build_transit_data.py` from the URLs in `Tools/gtfs_sources.txt`. Re-run it when agencies publish new schedules.
+- **Trip planning** (`Shared/Data/TripPlanner.swift`): GO uses the Metrolinx Journey API (any time, with transfers) with live overlay. GTFS-RT agencies get direct and one-transfer search over live trip updates (next ~3 h). Winnipeg uses its own trip planner. Mixed-agency trips link out to Apple Maps.
+- **Shared code**: `Shared/` is compiled into both the app and the widget extension (`BusHome/`). Saved trips and stops live in the App Group `group.com.HashimFarooq.SwiftRide`.
+- **Timetables** (`SwiftRide/Resources/TransitData/*.sched.json`, about 14 MB) come from each agency's GTFS via `Tools/build_schedules.py`. They power plan-ahead and the "nothing live right now" fallback. GO uses the Metrolinx Journey API when online and its bundled timetable offline; Winnipeg uses its own schedule API. Rebuild when agencies publish new schedules; their calendars expire.
+- **PATH** (`SwiftRide/App/PathNetwork.swift`, `SwiftRide/Resources/TransitData/path_toronto.json`): a walkable graph built from OpenStreetMap by `Tools/build_path.py`, routed with Dijkstra. Map data © OpenStreetMap contributors (ODbL). OSM maps about 19 km of the PATH's ~30 km.
+- **Offline** (`Shared/Data/Connectivity.swift`): `NWPathMonitor` marks the app offline, so network calls are skipped and the timetable is used straight away. GO's timetable is bundled too, as a fallback for the Journey API.
+- **Live Activity** (`Shared/Core/TripActivity.swift`, `BusHome/TripLiveActivity.swift`, `SwiftRide/App/TripActivityManager.swift`): updated locally from the timetable (no push server). Background location during a trip is what lets it advance while the app is closed; iOS shows its location indicator next to the activity.
+- Favourites saved by SwiftRide 3 (Core Data) are migrated automatically on first launch.
 
-1. Launch the App: Open Swift Ride on your iOS device.
-2. Explore the Map: Browse bus stops on the map or use the 'Nearby' tab to find stops close to you.
-3. Add Favorites: Use the 'Favorites' tab to keep track of your most-used bus stops.
-4. Refresh Data: Tap the refresh button to update bus stop information.
-5. View Location: Use the location button to view your current location.
+🧪**Tests**
 
-
-📰**Dependencies**
-
-iOS 13.0 or later.
-SwiftUI framework.
+`SwiftRideTests` covers data loading, protobuf decoding, time parsing, arrive-by and offline planning, and PATH routing. Set `SWIFTRIDE_LIVE_TESTS=1` in the scheme's test environment to also hit every agency's live feed and print a coverage report.
 
 📚**Setup**
 
-Clone the repository, open the project in Xcode, 
-and run it on a simulator or a real device.
+Clone the repository, open `SwiftRide.xcodeproj` in Xcode, and run it on a simulator or device. The app target uses a folder-synced group, so new files under `SwiftRide/` are picked up automatically.
 
-App is now Live on the app store!
-https://apps.apple.com/ca/app/swiftride-winnipeg-transit/id6472630133
+App Store: https://apps.apple.com/ca/app/swiftride-winnipeg-transit/id6472630133
