@@ -2,35 +2,90 @@
 //  SwiftRideTests.swift
 //  SwiftRideTests
 //
-//  Created by Hashim Farooq on 2023-10-12.
+//  Unit tests run offline; the live-feed checks hit real agency servers and are
+//  skipped unless SWIFTRIDE_LIVE_TESTS=1 is set in the scheme's environment.
 //
 
 import XCTest
+import CoreLocation
 @testable import SwiftRide
 
 final class SwiftRideTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+    // MARK: Offline
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testEveryAgencyWithBundledStopsLoads() async throws {
+        for agency in Catalog.agencies where agency.hasBundledStops {
+            let data = await StaticStore.shared.data(for: agency)
+            XCTAssertNotNil(data, "\(agency.id) failed to load")
+            XCTAssertGreaterThan(data?.stops.count ?? 0, 4, "\(agency.id) has no stops")
+            XCTAssertGreaterThan(data?.routes.count ?? 0, 0, "\(agency.id) has no routes")
         }
     }
 
+    func testEveryCityResolvesItsAgencies() {
+        for city in Catalog.cities {
+            XCTAssertEqual(city.agencies.count, city.agencyIDs.count, "\(city.id) references an unknown agency")
+            XCTAssertTrue(Catalog.cities(near: city.coordinate).contains(city))
+        }
+    }
+
+    func testTTCHeadsignParsing() {
+        XCTAssertEqual(TTC.headsign(from: "East - 108b Driftwood towards Sheppard West Station via Arleta"), "Sheppard West Station")
+        XCTAssertEqual(TTC.headsign(from: "North - 35a Jane towards Steeles"), "Steeles")
+    }
+
+    func testAgencyLocalTimes() {
+        let d = TransitDates.local("2026-11-18 20:17:00", timeZone: "America/Toronto")
+        XCTAssertEqual(d?.timeIntervalSince1970, 1_795_051_020)
+        // Winnipeg follows whatever offset the device's time-zone database says, so derive the expectation from it.
+        let wpg = TransitDates.local("2026-11-18T20:17:00", timeZone: "America/Winnipeg")!
+        let offset = TimeZone(identifier: "America/Winnipeg")!.secondsFromGMT(for: wpg) - TimeZone(identifier: "America/Toronto")!.secondsFromGMT(for: wpg)
+        XCTAssertEqual(wpg.timeIntervalSince(d!), TimeInterval(-offset))
+    }
+
+    func testProtobufVarintAndStrings() throws {
+        // FeedMessage { entity { id: "a" trip_update { trip { trip_id: "t" route_id: "r" }
+        //   stop_time_update { departure { time: 2000000000 } stop_id: "s" } } } }
+        let trip: [UInt8] = [0x0A, 0x01, 0x74, 0x2A, 0x01, 0x72]
+        let event: [UInt8] = [0x10] + varint(2_000_000_000)
+        let stu: [UInt8] = [0x1A, UInt8(event.count)] + event + [0x22, 0x01, 0x73]
+        let tu: [UInt8] = [0x0A, UInt8(trip.count)] + trip + [0x12, UInt8(stu.count)] + stu
+        let entity: [UInt8] = [0x0A, 0x01, 0x61, 0x1A, UInt8(tu.count)] + tu
+        let feed: [UInt8] = [0x12, UInt8(entity.count)] + entity
+        let decoded = try GTFSRT.decode(Data(feed))
+        XCTAssertEqual(decoded.tripUpdates.count, 1)
+        XCTAssertEqual(decoded.tripUpdates[0].routeID, "r")
+        XCTAssertEqual(decoded.tripUpdates[0].stopTimes.first?.stopID, "s")
+        XCTAssertEqual(decoded.tripUpdates[0].stopTimes.first?.time, 2_000_000_000)
+    }
+
+    private func varint(_ v: UInt64) -> [UInt8] {
+        var v = v, out: [UInt8] = []
+        repeat { var b = UInt8(v & 0x7F); v >>= 7; if v != 0 { b |= 0x80 }; out.append(b) } while v != 0
+        return out
+    }
+
+    // MARK: Live (network)
+
+    /// For each city, find departures around the centre. Prints a coverage report.
+    func testLiveDeparturesInEveryCity() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["SWIFTRIDE_LIVE_TESTS"] == "1", "Set SWIFTRIDE_LIVE_TESTS=1 to hit live feeds")
+        var report: [String] = []
+        for agency in Catalog.agencies {
+            let city = Catalog.cities.first { $0.agencyIDs.first == agency.id } ?? Catalog.cities.first { $0.agencyIDs.contains(agency.id) }!
+            let center = CLLocation(latitude: city.lat, longitude: city.lon)
+            let stops = await TransitService.shared.stops(near: center, radius: 30_000, agencies: [agency])
+            var found = 0, checked = 0
+            for (stop, _) in stops.prefix(agency.source == .gtfsRealtime ? 60 : 12) {
+                checked += 1
+                if let d = try? await TransitService.shared.departures(for: stop), !d.isEmpty { found += 1 }
+                if found >= 3 { break }
+            }
+            report.append("\(agency.id.padding(toLength: 9, withPad: " ", startingAt: 0)) stops=\(stops.count) withDepartures=\(found)/\(checked)")
+        }
+        let text = "LIVE COVERAGE\n" + report.joined(separator: "\n")
+        print(text)
+        try? text.write(toFile: "/tmp/swiftride-live-coverage.txt", atomically: true, encoding: .utf8)
+    }
 }

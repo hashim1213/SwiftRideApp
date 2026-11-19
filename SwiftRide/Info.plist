@@ -3,6 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>to set bus reminders</string>
+	<string>SwiftRide reminds you before your bus or train leaves.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<!-- London Transit publishes its GTFS-Realtime feed over HTTP only. -->
+			<key>gtfs.ltconline.ca</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>
