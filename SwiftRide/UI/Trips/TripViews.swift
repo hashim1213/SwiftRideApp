@@ -75,6 +75,8 @@ final class PlannerModel {
             withAnimation(.snappy) { result = r }
             loading = false
             updatedAt = .now
+            // Always show a few next departures, not just one (e.g. late at night).
+            if arriveBy == nil, (1..<3).contains(r.itineraries.filter({ !$0.isWalkOnly }).count) { loadMore() }
         }
     }
 }
@@ -240,6 +242,17 @@ struct TripPlannerView: View {
                     Spacer()
                 }
             } else if let next = model.result.itineraries.first(where: { !$0.isWalkOnly }) {
+                if let first = model.result.nextServiceAt {
+                    HStack(spacing: 10) {
+                        Image(systemName: "moon.zzz.fill").font(.title3).foregroundStyle(Theme.accent)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("No service right now").font(.headline)
+                            Text("Next trips from \(TimeText.relativeDayTime(first))").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(14).card(radius: 18)
+                }
                 NextUpBanner(itinerary: next)
             }
             ForEach(model.result.itineraries) { it in
@@ -427,7 +440,7 @@ struct NextUpBanner: View {
                     .frame(width: 46, height: 46)
                     .background(Theme.signal, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(mins <= 0 ? "Leave now" : "Leave in \(mins) min")
+                    Text(mins <= 0 ? "Leave now" : mins < 60 ? "Leave in \(mins) min" : "Leave \(TimeText.relativeDayTime(itinerary.leaveAt))")
                         .font(.title3.weight(.heavy))
                     if let r = itinerary.firstRide {
                         Text("\(r.route.badgeText) from \(r.from.name)\(r.platform.map { " · Platform \($0)" } ?? "")")
@@ -813,6 +826,14 @@ extension TimeText {
         if Calendar.current.isDateInToday(d) { return "Today" }
         if Calendar.current.isDateInTomorrow(d) { return "Tomorrow" }
         return d.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+    }
+
+    /// "5:12 AM", "tomorrow at 5:12 AM" or "Monday at 5:12 AM".
+    static func relativeDayTime(_ d: Date) -> String {
+        let t = clock.string(from: d)
+        if Calendar.current.isDateInToday(d) { return t }
+        if Calendar.current.isDateInTomorrow(d) { return "tomorrow at \(t)" }
+        return "\(d.formatted(.dateTime.weekday(.wide))) at \(t)"
     }
 
     static func dayTime(_ d: Date) -> String {

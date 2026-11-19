@@ -186,6 +186,29 @@ final class SwiftRideTests: XCTestCase {
         try? report.write(toFile: "/tmp/swiftride-offline.txt", atomically: true, encoding: .utf8)
     }
 
+    /// Overnight there's nothing in the normal 3-hour window; the planner must still show the next trips.
+    func testLeaveNowShowsNextServiceOvernight() async throws {
+        let go = try XCTUnwrap(Catalog.agency("go"))
+        let loaded = await StaticStore.shared.data(for: go)
+        let goData = try XCTUnwrap(loaded)
+        let ml = try XCTUnwrap(goData.stopByID["ML"]), un = try XCTUnwrap(goData.stopByID["UN"])
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "America/Toronto")!
+        let night = cal.date(bySettingHour: 1, minute: 30, second: 0, of: cal.date(byAdding: .day, value: 1, to: .now)!)!
+        let f = DateFormatter(); f.dateFormat = "EEE HH:mm"; f.timeZone = cal.timeZone
+        var report = ""
+        for offline in [false, true] {
+            Network.isOffline = offline
+            let plan = await TripPlanner.shared.plan(from: .stop(un), to: .stop(ml), current: nil, departAfter: night)
+            let rides = plan.itineraries.filter { !$0.isWalkOnly }
+            XCTAssertFalse(rides.isEmpty, "\(offline ? "offline" : "online"): no next service overnight (\(plan.notes))")
+            XCTAssertTrue(rides.allSatisfy { $0.leaveAt >= night.addingTimeInterval(-60) })
+            report += "\(offline ? "OFFLINE" : "ONLINE") Union→Milton after 1:30am: next service flag \(plan.nextServiceAt.map(f.string) ?? "-"); "
+                + rides.prefix(3).map { "\(f.string(from: $0.leaveAt))→\(f.string(from: $0.arriveAt)) \($0.rides.map(\.route.badgeText).joined(separator: ">"))" }.joined(separator: ", ") + "\n"
+        }
+        Network.isOffline = false
+        try? report.write(toFile: "/tmp/swiftride-nextservice.txt", atomically: true, encoding: .utf8)
+    }
+
     // MARK: Live Activity
 
     @MainActor func testLiveActivityStepsFollowTheTimetable() {

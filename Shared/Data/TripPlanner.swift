@@ -139,6 +139,8 @@ struct Itinerary: Identifiable, Hashable {
 struct PlanResult {
     var itineraries: [Itinerary] = []
     var notes: [String] = []
+    /// Set when nothing runs soon and the options shown are the next service later on (e.g. first trains tomorrow).
+    var nextServiceAt: Date? = nil
 }
 
 // MARK: - Saved trips
@@ -282,6 +284,14 @@ struct TripPlanner {
             for await list in group { itineraries += list }
         }
 
+        // Nothing running in the next few hours (overnight, Sunday mornings…): look further ahead in the
+        // timetable so there's always a "next train" to show.
+        var laterService = false
+        if !itineraries.contains(where: { !$0.isWalkOnly }) {
+            let later = await nextServicePlans(agencies: common, origin: origin, dest: dest, after: departAfter)
+            if !later.isEmpty { itineraries += later; laterService = true }
+        }
+
         // Rank: soonest arrival, fewer transfers, less walking. Drop ones you can't catch any more.
         let cutoff = Date().addingTimeInterval(-60)
         var seen = Set<String>()
@@ -294,10 +304,32 @@ struct TripPlanner {
             }
             .filter { seen.insert($0.id).inserted }
         result.itineraries = Self.prune(result.itineraries)
+        // Flag a long gap (overnight, or the extended search kicked in) so the UI can say nothing runs before then.
+        if let first = result.itineraries.filter({ !$0.isWalkOnly }).map(\.leaveAt).min(),
+           laterService || first.timeIntervalSince(max(departAfter, Date())) > 60 * 60 {
+            result.nextServiceAt = first
+        }
         if result.itineraries.isEmpty && result.notes.isEmpty {
-            result.notes.append("No trips found in the next few hours. Live trip planning covers trips that start within about 3 hours.")
+            result.notes.append("No service found in the next 24 hours between these stops.")
         }
         return result
+    }
+
+    /// Steps through the timetable in 3-hour windows (up to a day ahead) until some trips turn up.
+    private func nextServicePlans(agencies: [Agency], origin: [String: [Candidate]], dest: [String: [Candidate]], after: Date) async -> [Itinerary] {
+        let window = 3.0
+        var start = after.addingTimeInterval(2.5 * 3600)
+        while start < after.addingTimeInterval(24 * 3600) {
+            var found: [Itinerary] = []
+            for agency in agencies where agency.source == .gtfsRealtime || agency.source == .metrolinx {
+                let oc = origin[agency.id] ?? [], dc = dest[agency.id] ?? []
+                guard let idx = await ScheduleStore.shared.index(for: agency, from: start, hours: window + 0.25) else { continue }
+                found += await realtimePlans(agency: agency, origin: oc, dest: dc, after: start, index: idx, isRealtime: false)
+            }
+            if !found.isEmpty { return found }
+            start = start.addingTimeInterval(window * 3600)
+        }
+        return []
     }
 
     /// Keeps a useful spread: drop options that leave earlier but arrive later than another option.
@@ -322,6 +354,16 @@ struct TripPlanner {
             // The chosen stop, its sibling platforms, and other agencies' stops right next to it (e.g. Union GO ↔ UP Union).
             for (n, dist) in await TransitService.shared.stops(near: loc, radius: 250) where n.agencyID != s.agencyID || dist <= 120 {
                 add(n, n.id == s.id ? 0 : dist)
+            }
+            // A station's own bus terminal can be a short walk away (Union Station → Union Station Bus Terminal,
+            // Milton GO → Milton GO Bus). Count same-named stops of that agency as part of the station.
+            var base = s.name.lowercased()
+            for suffix in [" go station", " go", " station"] where base.hasSuffix(suffix) { base = String(base.dropLast(suffix.count)); break }
+            if base.count >= 4 {
+                for (n, dist) in await TransitService.shared.stops(near: loc, radius: 700)
+                where n.agencyID == s.agencyID && dist > 120 && n.name.lowercased().hasPrefix(base + " ") {
+                    add(n, dist)
+                }
             }
             if out[s.agencyID]?.contains(where: { $0.stop.id == s.id }) != true { add(s, 0) }
         } else {
