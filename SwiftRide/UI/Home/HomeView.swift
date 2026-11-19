@@ -39,6 +39,7 @@ struct HomeView: View {
     @State private var camera: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var visibleRegion: MKCoordinateRegion?
     @State private var showSearchHere = false
+    @State private var guideItinerary: Itinerary?
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(Prefs.manualCityID) private var manualCityID = ""
 
@@ -72,8 +73,10 @@ struct HomeView: View {
             .sheet(isPresented: $router.showSettings) {
                 SettingsView(model: model, onPickCity: { pick($0) }, onUseLocation: useMyLocation)
             }
+            .fullScreenCover(item: $guideItinerary) { TripGuideView(itinerary: $0) }
         }
         .task {
+            TripActivityManager.shared.cleanUpStale()
             location.start()
             if let city = Catalog.city(manualCityID) {
                 // The rider explicitly chose a city; respect it until they ask for their location.
@@ -94,8 +97,9 @@ struct HomeView: View {
             if location.isDenied && model.center == nil { fallbackCity() }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { model.reload(); model.startTicking(); location.start() }
-            if phase == .background { model.stopTicking(); location.stop() }
+            if phase == .active { model.reload(); model.startTicking(); location.start(); TripActivityManager.shared.refresh() }
+            // Keep location running while a trip is guided, so the Live Activity can advance.
+            if phase == .background { model.stopTicking(); if !TripActivityManager.shared.isRunning { location.stop() } }
         }
         .onChange(of: router.focusRequest) { _, stop in
             if let stop { model.focusedStop = stop }
@@ -158,6 +162,9 @@ struct HomeView: View {
             }
         case "plan":
             router.path = [.planner(from: .currentLocation, to: nil)]
+        case "guide":
+            guideItinerary = TripActivityManager.shared.itinerary
+            return
         default: break
         }
         if router.detent == .height(SheetMetrics.peek) { router.detent = .fraction(0.45) }

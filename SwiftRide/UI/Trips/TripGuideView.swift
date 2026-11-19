@@ -28,7 +28,7 @@ struct TripGuideView: View {
             }
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .onAppear { UIApplication.shared.isIdleTimerDisabled = true; scheduleAlerts() }
+        .onAppear { UIApplication.shared.isIdleTimerDisabled = true; scheduleAlerts(); TripActivityManager.shared.start(itinerary) }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
 
@@ -169,10 +169,10 @@ struct TripGuideView: View {
     private var footer: some View {
         HStack {
             Image(systemName: alertsOn ? "bell.badge.fill" : "bell.slash").foregroundStyle(alertsOn ? Theme.accent : .secondary)
-            Text(alertsOn ? "We'll alert you to board and before your stop — even offline." : "Turn on notifications to get board and get-off alerts.")
+            Text(alertsOn ? "Alerts and your Lock Screen will guide you, even offline. Close this and the trip keeps going." : "Turn on notifications to get board and get-off alerts.")
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
-            Button("End") { cancelAlerts(); dismiss() }.font(.subheadline.weight(.semibold))
+            Button("End") { cancelAlerts(); TripActivityManager.shared.end(); dismiss() }.font(.subheadline.weight(.semibold))
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
         .background(.bar)
@@ -255,8 +255,15 @@ struct GuideState {
                     }
                     if let n = nearest, loc.distance(from: stopLocation(n.element, ride: r)) < 400 { idx = n.offset; gps = true }
                 }
-                if !gps { idx = r.visits.firstIndex { $0.time >= now } ?? max(0, r.visits.count - 1) }
-                let remaining = r.visits.isEmpty ? (r.arrive.timeIntervalSince(now) < 120 ? 0 : 1) : max(0, r.visits.count - 1 - idx)
+                var remaining: Int
+                if gps {
+                    remaining = max(0, r.visits.count - 1 - idx)          // at stop idx: stops still to reach
+                } else {
+                    idx = r.visits.firstIndex { $0.time >= now } ?? max(0, r.visits.count - 1)
+                    remaining = max(0, r.visits.count - idx)              // heading to stop idx: it and the ones after
+                }
+                if r.visits.isEmpty { remaining = r.arrive.timeIntervalSince(now) < 120 ? 1 : 2 }
+                if r.arrive.timeIntervalSince(now) < 45 { remaining = 0 }  // pulling in: get off now
                 phase = .riding(r, stopsRemaining: remaining)
             }
             if rideIdx + 1 < rides.count {

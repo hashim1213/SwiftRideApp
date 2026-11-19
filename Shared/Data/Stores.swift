@@ -31,6 +31,15 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     func start() { if isAuthorized { manager.startUpdatingLocation() } }
     func stop() { manager.stopUpdatingLocation() }
 
+    /// During a guided trip: keep updating in the background (blue pill) so the Live Activity can advance.
+    func setTripTracking(_ on: Bool) {
+        let canBackground = (Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String])?.contains("location") == true
+        if canBackground { manager.allowsBackgroundLocationUpdates = on }
+        manager.pausesLocationUpdatesAutomatically = !on
+        manager.showsBackgroundLocationIndicator = on
+        if on { start() }
+    }
+
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let s = manager.authorizationStatus
         Task { @MainActor in

@@ -185,4 +185,36 @@ final class SwiftRideTests: XCTestCase {
         report += "\nARRIVE BY 9am Milton→Union: " + byArrival.itineraries.prefix(4).map { "\(f.string(from: $0.leaveAt))→\(f.string(from: $0.arriveAt))" }.joined(separator: ", ")
         try? report.write(toFile: "/tmp/swiftride-offline.txt", atomically: true, encoding: .utf8)
     }
+
+    // MARK: Live Activity
+
+    @MainActor func testLiveActivityStepsFollowTheTimetable() {
+        let route = TransitRoute(agencyID: "ttc", routeID: "1", shortName: "1", longName: "Yonge-University", colorHex: "FFC21A", textColorHex: "000000", mode: .subway)
+        func stop(_ id: String, _ name: String, _ lat: Double) -> TransitStop {
+            TransitStop(agencyID: "ttc", stopID: id, code: id, name: name, latitude: lat, longitude: -79.38, routeIDs: ["1"])
+        }
+        let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+        let a = stop("a", "Union", 43.645), b = stop("b", "King", 43.649), c = stop("c", "Queen", 43.652), d = stop("d", "Dundas", 43.656)
+        let visits = [StopVisit(stopID: "a", name: "Union", time: t0.addingTimeInterval(600)),
+                      StopVisit(stopID: "b", name: "King", time: t0.addingTimeInterval(720)),
+                      StopVisit(stopID: "c", name: "Queen", time: t0.addingTimeInterval(840)),
+                      StopVisit(stopID: "d", name: "Dundas", time: t0.addingTimeInterval(960))]
+        let ride = RideLeg(route: route, headsign: "Finch", from: a, to: d, depart: t0.addingTimeInterval(600), arrive: t0.addingTimeInterval(960),
+                           isRealtime: false, visits: visits)
+        let walk = WalkLeg(fromName: "Here", toName: "Union", distance: 300)
+        let trip = Itinerary(legs: [.walk(walk), .ride(ride)])
+
+        let walking = TripActivityManager.content(for: trip, now: t0)
+        XCTAssertEqual(walking?.phase, .walk)
+        XCTAssertEqual(walking?.target, t0.addingTimeInterval(600 - walk.seconds))
+        XCTAssertEqual(TripActivityManager.content(for: trip, now: t0.addingTimeInterval(560))?.phase, .wait)
+        let riding = TripActivityManager.content(for: trip, now: t0.addingTimeInterval(650))
+        XCTAssertEqual(riding?.phase, .ride)
+        XCTAssertEqual(riding?.stopsRemaining, 3)                       // King, Queen, Dundas
+        XCTAssertEqual(riding?.title, "Get off in 3 stops")
+        XCTAssertEqual(riding?.subtitle, "Next: King")
+        XCTAssertEqual(TripActivityManager.content(for: trip, now: t0.addingTimeInterval(850))?.title, "Get off at the next stop")
+        XCTAssertEqual(TripActivityManager.content(for: trip, now: t0.addingTimeInterval(930))?.title, "Get off now")
+        XCTAssertEqual(TripActivityManager.content(for: trip, now: t0.addingTimeInterval(2000))?.phase, .arrived)
+    }
 }

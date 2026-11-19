@@ -8,6 +8,7 @@ struct SwiftRideWidgets: WidgetBundle {
     var body: some Widget {
         NextTripWidget()
         SavedStopWidget()
+        TripLiveActivity()
     }
 }
 
