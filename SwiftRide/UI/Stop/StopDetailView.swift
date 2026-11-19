@@ -104,7 +104,7 @@ struct StopDetailView: View {
 
     // MARK: Plan ahead
 
-    private var supportsTimetable: Bool { agency?.source == .gtfsRealtime }
+    private var supportsTimetable: Bool { agency?.source == .gtfsRealtime || agency?.source == .metrolinx }
 
     @ViewBuilder private var timeChips: some View {
         HStack(spacing: 8) {
@@ -117,7 +117,8 @@ struct StopDetailView: View {
         }
         .sheet(isPresented: $pickingTime) {
             LeaveAtPicker(date: at ?? Calendar.current.date(bySettingHour: 8, minute: 0, second: 0,
-                                                            of: Calendar.current.date(byAdding: .day, value: 1, to: .now)!)!) { d in
+                                                            of: Calendar.current.date(byAdding: .day, value: 1, to: .now)!)!,
+                          allowsArriveBy: false) { d, _ in
                 at = d; pickingTime = false
                 Task { await load() }
             }

@@ -71,6 +71,13 @@ struct WalkLeg: Hashable {
     var minutes: Int { Int((seconds / 60).rounded()) }
 }
 
+/// A stop the vehicle passes on a ride, with its (live or scheduled) time.
+struct StopVisit: Hashable {
+    let stopID: String
+    let name: String
+    let time: Date
+}
+
 struct RideLeg: Hashable {
     let route: TransitRoute
     let headsign: String
@@ -83,6 +90,8 @@ struct RideLeg: Hashable {
     var platform: String? = nil
     var stopCount: Int? = nil
     var tripID: String? = nil
+    /// Every stop from boarding to alighting (inclusive), when the source provides them.
+    var visits: [StopVisit] = []
 
     var delaySeconds: Int? { scheduledDepart.map { Int(depart.timeIntervalSince($0)) } }
 }
@@ -192,6 +201,29 @@ struct TripPlanner {
 
     private struct Candidate { let stop: TransitStop; let walk: WalkLeg }
 
+    /// "Get me there by 9:00": searches departures in the hours before and keeps the latest ones that arrive in time.
+    func plan(from: Place, to: Place, current: CLLocationCoordinate2D?, arriveBy: Date) async -> PlanResult {
+        var found: [Itinerary] = []
+        var notes: [String] = []
+        for hoursBefore in [1.25, 2.5] {
+            let start = max(Date(), arriveBy.addingTimeInterval(-hoursBefore * 3600))
+            let r = await plan(from: from, to: to, current: current, departAfter: start)
+            notes = r.notes
+            found += r.itineraries.filter { $0.arriveAt <= arriveBy.addingTimeInterval(60) && ($0.isWalkOnly || $0.leaveAt >= Date().addingTimeInterval(-60)) }
+            if found.filter({ !$0.isWalkOnly }).count >= 3 || start <= Date() { break }
+        }
+        var seen = Set<String>()
+        var list = found.filter { seen.insert($0.id).inserted }
+            .sorted { a, b in a.leaveAt != b.leaveAt ? a.leaveAt > b.leaveAt : a.transfers < b.transfers }
+        // Drop options that leave earlier but don't arrive any earlier than a later-leaving one.
+        var kept: [Itinerary] = []
+        for it in list where !kept.contains(where: { $0.leaveAt >= it.leaveAt && $0.arriveAt <= it.arriveAt && $0.transfers <= it.transfers && !it.isWalkOnly }) {
+            kept.append(it)
+        }
+        list = Array(kept.prefix(8))
+        return PlanResult(itineraries: list, notes: list.isEmpty ? (notes.isEmpty ? ["No trips arrive by then. Try a later time."] : notes) : [])
+    }
+
     func plan(from: Place, to: Place, current: CLLocationCoordinate2D?, departAfter: Date = .now) async -> PlanResult {
         var result = PlanResult()
         guard let o = from.coordinate(current: current), let d = to.coordinate(current: current) else {
@@ -236,7 +268,12 @@ struct TripPlanner {
                         }
                         guard let idx = await ScheduleStore.shared.index(for: agency, from: departAfter, hours: 2.5) else { return [] }
                         return await realtimePlans(agency: agency, origin: oc, dest: dc, after: departAfter, index: idx, isRealtime: false)
-                    case .metrolinx: return await goPlans(origin: oc, dest: dc, after: departAfter)
+                    case .metrolinx:
+                        let live = await goPlans(origin: oc, dest: dc, after: departAfter)
+                        if !live.isEmpty { return live }
+                        // Offline (or the API is down): plan from the bundled GO timetable.
+                        guard let idx = await ScheduleStore.shared.index(for: agency, from: departAfter, hours: 3) else { return [] }
+                        return await realtimePlans(agency: agency, origin: oc, dest: dc, after: departAfter, index: idx, isRealtime: false)
                     case .ttc: return await ttcPlans(origin: oc, dest: dc)
                     case .winnipeg: return await winnipegPlans(from: o, to: d, fromName: from.title, toName: to.title, after: departAfter)
                     }
@@ -318,10 +355,13 @@ struct TripPlanner {
         }
         func ride(_ t: RealtimeCache.LiveTrip, _ i: Int, _ j: Int) -> RideLeg? {
             guard let r = route(t), let a = data.stopByID[t.stops[i].stopID], let b = data.stopByID[t.stops[j].stopID] else { return nil }
+            let visits = t.stops[i...j].compactMap { s in
+                data.stopByID[s.stopID].map { StopVisit(stopID: s.stopID, name: $0.name, time: Date(timeIntervalSince1970: TimeInterval(s.time))) }
+            }
             return RideLeg(route: r, headsign: headsign(t, r), from: a, to: b,
                            depart: Date(timeIntervalSince1970: TimeInterval(t.stops[i].time)),
                            arrive: Date(timeIntervalSince1970: TimeInterval(t.stops[j].time)),
-                           isRealtime: isRealtime, stopCount: j - i, tripID: t.tripID)
+                           isRealtime: isRealtime, stopCount: j - i, tripID: t.tripID, visits: visits)
         }
 
         var results: [Itinerary] = []
@@ -423,7 +463,7 @@ struct TripPlanner {
                         return J.list(root["SchJourneys"]).flatMap { j -> [Itinerary] in
                             let day = J.str(j["Date"]) ?? ""
                             return J.list(j["Services"]).compactMap { svc in
-                                parseGOService(svc, day: day, tz: tz, data: data, live: liveByTrip, origin: oc, dest: dc)
+                                parseGOService(svc, day: day, tz: tz, data: data, live: liveByTrip, origin: oc, dest: dc, after: at)
                             }
                         }
                     }
@@ -435,11 +475,13 @@ struct TripPlanner {
     }
 
     private func parseGOService(_ svc: [String: Any], day: String, tz: TimeZone, data: AgencyData,
-                                live: [String: Departure], origin: Candidate, dest: Candidate) -> Itinerary? {
+                                live: [String: Departure], origin: Candidate, dest: Candidate, after: Date) -> Itinerary? {
         var legs: [Leg] = []
         var lastTime: Date?
         func time(_ hhmm: String?) -> Date? {
             guard let hhmm, var d = TransitDates.local("\(day) \(hhmm):00", timeZone: tz.identifier) else { return nil }
+            // GO labels after-midnight trips with the previous service day: roll them forward.
+            while d < after.addingTimeInterval(-6 * 3600) { d = d.addingTimeInterval(86_400) }
             if let lastTime, d < lastTime.addingTimeInterval(-3600) { d = d.addingTimeInterval(86_400) } // past midnight
             lastTime = d
             return d
@@ -459,15 +501,23 @@ struct TripPlanner {
             let display = J.str(t["Display"]) ?? ""
             let headsign = display.components(separatedBy: " - ").dropFirst().joined(separator: " - ").nilIfEmpty ?? to.name
             let number = J.str(t["Number"])
+            let savedLast = lastTime
+            lastTime = dep.addingTimeInterval(-60)
+            let visits: [StopVisit] = stops.compactMap { s in
+                guard let code = J.str(s["Code"]), let st = data.stopByID[code], let tm = time(J.str(s["Time"])) else { return nil }
+                return StopVisit(stopID: code, name: st.name, time: tm)
+            }
+            lastTime = savedLast
             var leg = RideLeg(route: route, headsign: headsign, from: from, to: to, depart: dep, arrive: arr,
-                              isRealtime: false, stopCount: max(1, stops.count - 1), tripID: number)
+                              isRealtime: false, stopCount: max(1, stops.count - 1), tripID: number, visits: visits)
             // Overlay live departure time and platform for the first leg (only near-term: trip numbers repeat daily).
-            if idx == 0, dep.timeIntervalSinceNow < 3 * 3600, let n = number, let l = live[n] {
+            if idx == 0, dep.timeIntervalSinceNow < 3 * 3600, let n = number, let l = live[n], abs(l.time.timeIntervalSince(dep)) < 3 * 3600 {
                 let shift = l.time.timeIntervalSince(dep)
                 leg.scheduledDepart = dep
                 dep = l.time; arr = arr.addingTimeInterval(max(0, shift))
                 leg = RideLeg(route: route, headsign: headsign, from: from, to: to, depart: dep, arrive: arr, scheduledDepart: leg.scheduledDepart,
-                              isRealtime: l.isRealtime, platform: l.platform, stopCount: leg.stopCount, tripID: number)
+                              isRealtime: l.isRealtime, platform: l.platform, stopCount: leg.stopCount, tripID: number,
+                              visits: leg.visits.map { StopVisit(stopID: $0.stopID, name: $0.name, time: $0.time.addingTimeInterval(max(0, shift))) })
             }
             if idx > 0, case .ride(let prev)? = legs.last, prev.to.stopID != from.stopID,
                let a = data.stopByID[prev.to.stopID] {

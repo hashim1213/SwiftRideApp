@@ -14,10 +14,14 @@ enum TransitError: LocalizedError, Equatable {
 }
 
 enum Network {
+    /// Set by `Connectivity` — when there's no route to the internet we skip requests and use timetables at once.
+    nonisolated(unsafe) static var isOffline = false
+
     static let session: URLSession = {
         let c = URLSessionConfiguration.default
-        c.timeoutIntervalForRequest = 20
-        c.timeoutIntervalForResource = 45
+        // Short timeouts: on a weak signal it's better to fall back to the timetable than to spin.
+        c.timeoutIntervalForRequest = 10
+        c.timeoutIntervalForResource = 30
         c.requestCachePolicy = .reloadIgnoringLocalCacheData
         c.httpAdditionalHeaders = ["User-Agent": "SwiftRide/4.0 (iOS; transit app)", "Accept-Encoding": "gzip, deflate, br"]
         c.waitsForConnectivity = false
@@ -25,13 +29,15 @@ enum Network {
     }()
 
     static func data(_ url: URL) async throws -> Data {
+        if isOffline { throw TransitError.offline }
         do {
             let (data, response) = try await session.data(from: url)
             if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
                 throw TransitError.badResponse(http.statusCode)
             }
             return data
-        } catch let e as URLError where [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed].contains(e.code) {
+        } catch let e as URLError where [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .timedOut,
+                                           .cannotFindHost, .cannotConnectToHost, .internationalRoamingOff].contains(e.code) {
             throw TransitError.offline
         }
     }

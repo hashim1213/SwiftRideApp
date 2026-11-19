@@ -9,6 +9,7 @@ enum SheetRoute: Hashable {
     case cities
     case planner(from: Place, to: Place?)
     case itinerary(Itinerary)
+    case path
 }
 
 @MainActor @Observable
@@ -59,6 +60,7 @@ struct HomeView: View {
                         case .cities: CityPickerView { city in pick(city) }
                         case .planner(let from, let to): TripPlannerView(model: PlannerModel(from: from, to: to), router: router)
                         case .itinerary(let it): ItineraryDetailView(itinerary: it, router: router)
+                        case .path: PathPlannerView().onAppear { router.detent = .large }
                         }
                     }
             }

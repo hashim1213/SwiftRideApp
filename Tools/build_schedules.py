@@ -11,8 +11,8 @@ Run after build_transit_data.py (it needs the stop order from <agency>.json).
 import sys, zipfile, csv, io, json, os, datetime
 ZIPS, OUT = sys.argv[1], sys.argv[2]
 ONLY = set(sys.argv[3].split(',')) if len(sys.argv) > 3 else None
-# GO uses the Metrolinx Journey API and Winnipeg its own planner, so they don't need bundled timetables.
-AGENCIES = ['ttc','up','calgary','edmonton','halifax','victoria','kelowna','bct46','bct41','bct13',
+# Winnipeg uses its own planner API. GO's timetable is bundled as the offline fallback for the Metrolinx Journey API.
+AGENCIES = ['ttc','go','up','calgary','edmonton','halifax','victoria','kelowna','bct46','bct41','bct13',
             'yrt','miway','ltc','hsr','durham','barrie','kingston','windsor']
 today = datetime.date.today(); horizon = today + datetime.timedelta(days=150)
 def ymd(d): return int(d.strftime('%Y%m%d'))

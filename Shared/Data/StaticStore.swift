@@ -59,8 +59,9 @@ final class AgencyData: @unchecked Sendable {
     }
 
     func headsign(forTrip tripID: String) -> String? {
-        guard let t = trips[tripID], t.count > 1, t[1] < headsigns.count else { return nil }
-        return headsigns[t[1]].nilIfEmpty?.transitCased
+        guard let t = trips[tripID], t.count > 1, t[1] < headsigns.count, let raw = headsigns[t[1]].nilIfEmpty else { return nil }
+        if raw.localizedCaseInsensitiveContains("towards ") { return TTC.headsign(from: raw) ?? raw }
+        return raw.transitCased
     }
 
     /// Headsign for a trip on `route` that ends at `lastStopID` ("Dufferin Gate" rather than the last stop's street name).
@@ -115,11 +116,21 @@ actor StaticStore {
         loading[agency.id] = task
         let d = await task.value
         cache[agency.id] = d
+        if let d { StopLookup.shared.register(d) }
         loading[agency.id] = nil
         return d
     }
 
     func cached(_ agencyID: String) -> AgencyData? { cache[agencyID] }
+}
+
+/// Synchronous access to stops that have already been loaded (e.g. for the trip guide's GPS matching).
+final class StopLookup: @unchecked Sendable {
+    static let shared = StopLookup()
+    private let lock = NSLock()
+    private var cache: [String: AgencyData] = [:]
+    func register(_ d: AgencyData) { lock.lock(); cache[d.agency.id] = d; lock.unlock() }
+    func stop(agency: String, id: String) -> TransitStop? { lock.lock(); defer { lock.unlock() }; return cache[agency]?.stopByID[id] }
 }
 
 extension TransitRoute {

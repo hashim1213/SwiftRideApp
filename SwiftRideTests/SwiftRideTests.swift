@@ -139,4 +139,50 @@ final class SwiftRideTests: XCTestCase {
         print(report)
         try? report.write(toFile: "/tmp/swiftride-planner.txt", atomically: true, encoding: .utf8)
     }
+
+    // MARK: Offline, arrive-by and PATH
+
+    func testPathRoutingUnionToEatonCentre() throws {
+        let net = PathNetwork.shared
+        XCTAssertTrue(net.isAvailable)
+        let union = try XCTUnwrap(net.places(near: nil, matching: "Union").first)
+        let eaton = try XCTUnwrap(net.places(near: nil, matching: "Eaton").first)
+        let route = try XCTUnwrap(net.route(from: union, to: eaton, stepFree: false), "no PATH route \(union.name) → \(eaton.name)")
+        XCTAssertGreaterThan(route.metres, 300)
+        XCTAssertLessThan(route.metres, 3000)
+        var report = "PATH \(union.name) → \(eaton.name): \(Int(route.metres)) m, \(route.minutes) min, \(route.steps.count) steps\n"
+        for st in route.steps { report += "  • \(st.instruction)\(st.detail.map { " — " + $0 } ?? "") (\(Int(st.metres)) m)\n" }
+        if let sf = net.route(from: union, to: eaton, stepFree: true) { report += "step-free: \(Int(sf.metres)) m\n" } else { report += "step-free: none\n" }
+        try? report.write(toFile: "/tmp/swiftride-path.txt", atomically: true, encoding: .utf8)
+    }
+
+    func testOfflinePlanningAndDepartures() async throws {
+        Network.isOffline = true
+        defer { Network.isOffline = false }
+        let go = try XCTUnwrap(Catalog.agency("go"))
+        let loaded = await StaticStore.shared.data(for: go)
+        let goData = try XCTUnwrap(loaded)
+        let ml = try XCTUnwrap(goData.stopByID["ML"]), un = try XCTUnwrap(goData.stopByID["UN"])
+        // Tomorrow 8 AM so there's GO service regardless of when the test runs.
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "America/Toronto")!
+        let morning = cal.date(bySettingHour: 8, minute: 0, second: 0, of: cal.date(byAdding: .day, value: 1, to: .now)!)!
+        let goPlan = await TripPlanner.shared.plan(from: .stop(ml), to: .stop(un), current: nil, departAfter: morning)
+        XCTAssertFalse(goPlan.itineraries.isEmpty, "offline GO planning failed: \(goPlan.notes)")
+        let ttcPlan = await TripPlanner.shared.plan(
+            from: .point(name: "King & Bay", subtitle: nil, latitude: 43.6487, longitude: -79.3800),
+            to: .point(name: "Spadina & Dundas", subtitle: nil, latitude: 43.6527, longitude: -79.3977), current: nil, departAfter: morning)
+        XCTAssertFalse(ttcPlan.itineraries.isEmpty, "offline TTC planning failed")
+        let unDeps = try await TransitService.shared.departures(for: un, at: morning)
+        XCTAssertFalse(unDeps.isEmpty, "offline GO departures empty")
+        XCTAssertTrue(unDeps.allSatisfy { !$0.isRealtime })
+        let byArrival = await TripPlanner.shared.plan(from: .stop(ml), to: .stop(un), current: nil, arriveBy: morning.addingTimeInterval(3600))
+        XCTAssertFalse(byArrival.itineraries.isEmpty, "arrive-by found nothing")
+        XCTAssertTrue(byArrival.itineraries.allSatisfy { $0.arriveAt <= morning.addingTimeInterval(3660) })
+        let f = DateFormatter(); f.dateFormat = "EEE HH:mm"
+        var report = "OFFLINE GO Milton→Union 8am: " + goPlan.itineraries.prefix(3).map { "\(f.string(from: $0.leaveAt))→\(f.string(from: $0.arriveAt))" }.joined(separator: ", ")
+        report += "\nOFFLINE TTC: " + ttcPlan.itineraries.prefix(3).map { "\(f.string(from: $0.leaveAt)) \($0.rides.map(\.route.badgeText).joined(separator: ">"))" }.joined(separator: ", ")
+        report += "\nOFFLINE Union departures: \(unDeps.count), first \(unDeps.first.map { "\($0.route.badgeText) \(f.string(from: $0.time))" } ?? "-")"
+        report += "\nARRIVE BY 9am Milton→Union: " + byArrival.itineraries.prefix(4).map { "\(f.string(from: $0.leaveAt))→\(f.string(from: $0.arriveAt))" }.joined(separator: ", ")
+        try? report.write(toFile: "/tmp/swiftride-offline.txt", atomically: true, encoding: .utf8)
+    }
 }

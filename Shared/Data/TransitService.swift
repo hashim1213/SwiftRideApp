@@ -66,15 +66,17 @@ struct TransitService {
         guard let agency = Catalog.agency(stop.agencyID) else { return [] }
         if let at, at.timeIntervalSinceNow > 60 * 60 {
             switch agency.source {
-            case .gtfsRealtime: return await scheduledDepartures(stop: stop, agency: agency, from: at)
-            case .metrolinx, .winnipeg, .ttc: break // these APIs only answer "next"; the planner covers future GO/Winnipeg trips
+            case .gtfsRealtime, .metrolinx: return await scheduledDepartures(stop: stop, agency: agency, from: at)
+            case .winnipeg, .ttc: break // Winnipeg's API only answers "next"; its planner covers future trips
             }
         }
         let list: [Departure]
         switch agency.source {
         case .winnipeg: list = try await Winnipeg.departures(stop: stop)
         case .ttc: list = try await TTC.departures(stop: stop, data: await store.data(for: agency))
-        case .metrolinx: list = try await GO.departures(stop: stop, data: await store.data(for: agency))
+        case .metrolinx:
+            let live = (try? await GO.departures(stop: stop, data: await store.data(for: agency))) ?? []
+            list = live.isEmpty ? await scheduledDepartures(stop: stop, agency: agency, from: .now) : live
         case .gtfsRealtime:
             var live = (try? await gtfsDepartures(stop: stop, agency: agency)) ?? []
             if live.isEmpty && agency.umoFallback {

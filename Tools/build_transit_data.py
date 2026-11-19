@@ -8,7 +8,7 @@ Re-run whenever an agency publishes a new schedule (stop IDs rarely change, Calg
 """
 import sys,zipfile,csv,io,json,os,collections
 ZIPS=sys.argv[1]; OUT=sys.argv[2]; ONLY=set(sys.argv[3].split(',')) if len(sys.argv)>3 else None; os.makedirs(OUT,exist_ok=True)
-AG={'ttc':0,'go':0,'up':0,'calgary':1,'edmonton':0,'halifax':0,'victoria':0,'kelowna':0,'bct46':0,'bct41':0,'bct13':0,
+AG={'ttc':1,'go':0,'up':0,'calgary':1,'edmonton':0,'halifax':0,'victoria':0,'kelowna':0,'bct46':0,'bct41':0,'bct13':0,
     'yrt':0,'miway':0,'ltc':0,'hsr':0,'durham':0,'barrie':0,'kingston':0,'windsor':1}
 def norm(c):
     c=(c or '').strip().lstrip('#').upper()

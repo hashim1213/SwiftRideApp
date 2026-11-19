@@ -342,7 +342,7 @@ struct SettingsView: View {
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("SwiftRide \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
-                        Text("Transit data is provided by each agency under its open-data licence, including Winnipeg Transit, the TTC, Metrolinx (GO Transit & UP Express), and the City of Calgary. Times are estimates — always check signage at the stop.")
+                        Text("Transit data is provided by each agency under its open-data licence, including Winnipeg Transit, the TTC, Metrolinx (GO Transit & UP Express), and the City of Calgary. PATH map © OpenStreetMap contributors (ODbL). Times are estimates — always check signage at the stop.")
                     }
                     .padding(.top, 8)
                 }

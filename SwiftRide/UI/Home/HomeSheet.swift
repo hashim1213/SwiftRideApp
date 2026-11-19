@@ -7,14 +7,17 @@ struct HomeSheet: View {
     let location: LocationService
     @State private var favorites = FavoritesStore.shared
     @State private var trips = TripsStore.shared
+    @State private var net = Connectivity.shared
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 searchBar
+                if !net.isOnline { OfflineBanner() }
                 if !trips.trips.isEmpty { tripsStrip }
                 if !favorites.stops.isEmpty { savedStrip }
                 if !model.importantAlerts.isEmpty { alertBanner }
+                if let c = model.center, PathNetwork.covers(c), PathNetwork.shared.isAvailable { pathCard }
                 header
                 filters
                 content
@@ -127,6 +130,27 @@ struct HomeSheet: View {
             }
             .scrollIndicators(.hidden)
         }
+        .tint(.primary)
+    }
+
+    // MARK: PATH
+
+    private var pathCard: some View {
+        Button { router.open(.path) } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "point.3.filled.connected.trianglepath.dotted")
+                    .font(.system(size: 18, weight: .bold)).foregroundStyle(.black)
+                    .frame(width: 40, height: 40).background(Theme.signal, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Underground PATH").font(.subheadline.weight(.semibold))
+                    Text("Indoor walking directions — works with no GPS or signal").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(.tertiary)
+            }
+            .padding(12).card(radius: 16)
+        }
+        .buttonStyle(PressableStyle())
         .tint(.primary)
     }
 
@@ -278,6 +302,24 @@ struct HomeSheet: View {
                     .padding(.top, 4)
             }
         }
+    }
+}
+
+// MARK: - Offline banner
+
+struct OfflineBanner: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "wifi.slash").font(.headline).foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("You're offline").font(.subheadline.weight(.semibold))
+                Text("Showing scheduled times. Trip planning, saved trips and the PATH still work.").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -8,6 +8,8 @@ final class PlannerModel {
     var from: Place
     var to: Place?
     var leaveAt: Date? = nil          // nil = leave now
+    var arriveBy: Date? = nil         // set instead of leaveAt for "arrive by" searches
+    var isNow: Bool { leaveAt == nil && arriveBy == nil }
     private(set) var result = PlanResult()
     private(set) var loading = false
     private(set) var loadingMore = false
@@ -21,7 +23,21 @@ final class PlannerModel {
 
     /// Fetches the next batch of options after the last one shown.
     func loadMore() {
-        guard let to, let last = result.itineraries.last(where: { !$0.isWalkOnly }), !loadingMore else { return }
+        guard let to, !loadingMore else { return }
+        if let arriveBy, let earliest = result.itineraries.filter({ !$0.isWalkOnly }).map(\.arriveAt).min() {
+            // Arrive-by lists go backwards: fetch options arriving before the earliest one shown.
+            loadingMore = true
+            let from = from, here = LocationService.shared.location?.coordinate
+            let target = min(arriveBy, earliest.addingTimeInterval(-60))
+            Task {
+                let more = await TripPlanner.shared.plan(from: from, to: to, current: here, arriveBy: target)
+                let known = Set(result.itineraries.map(\.id))
+                withAnimation(.snappy) { result.itineraries += more.itineraries.filter { !$0.isWalkOnly && !known.contains($0.id) } }
+                loadingMore = false
+            }
+            return
+        }
+        guard let last = result.itineraries.last(where: { !$0.isWalkOnly }) else { return }
         loadingMore = true
         let from = from, after = last.leaveAt.addingTimeInterval(60)
         let here = LocationService.shared.location?.coordinate
@@ -46,10 +62,15 @@ final class PlannerModel {
         guard let to else { return }
         task?.cancel()
         loading = true
-        let from = from, at = leaveAt ?? .now
+        let from = from, at = leaveAt ?? .now, arriveBy = arriveBy
         let here = LocationService.shared.location?.coordinate
         task = Task {
-            let r = await TripPlanner.shared.plan(from: from, to: to, current: here, departAfter: at)
+            let r: PlanResult
+            if let arriveBy {
+                r = await TripPlanner.shared.plan(from: from, to: to, current: here, arriveBy: arriveBy)
+            } else {
+                r = await TripPlanner.shared.plan(from: from, to: to, current: here, departAfter: at)
+            }
             guard !Task.isCancelled else { return }
             withAnimation(.snappy) { result = r }
             loading = false
@@ -75,6 +96,7 @@ struct TripPlannerView: View {
             VStack(alignment: .leading, spacing: 14) {
                 endpoints
                 timeRow
+                if !Connectivity.shared.isOnline { OfflineBanner() }
                 content
             }
             .padding(.horizontal, 16)
@@ -112,7 +134,7 @@ struct TripPlannerView: View {
             // Keep live times fresh while the planner is open.
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(45))
-                if scenePhase == .active && model.leaveAt == nil && model.to != nil { model.run() }
+                if scenePhase == .active && model.isNow && model.to != nil { model.run() }
             }
         }
     }
@@ -163,19 +185,21 @@ struct TripPlannerView: View {
 
     private var timeRow: some View {
         HStack(spacing: 8) {
-            FilterChip(title: "Leave now", symbol: "clock", selected: model.leaveAt == nil) {
-                model.leaveAt = nil; model.run()
+            FilterChip(title: "Leave now", symbol: "clock", selected: model.isNow) {
+                model.leaveAt = nil; model.arriveBy = nil; model.run()
             }
-            FilterChip(title: model.leaveAt.map { TimeText.dayTime($0) } ?? "Plan ahead…", symbol: "calendar",
-                       selected: model.leaveAt != nil) { showTimePicker = true }
+            FilterChip(title: model.arriveBy.map { "Arrive by \(TimeText.dayTime($0))" } ?? model.leaveAt.map { TimeText.dayTime($0) } ?? "Plan ahead…",
+                       symbol: model.arriveBy == nil ? "calendar" : "flag.checkered", selected: !model.isNow) { showTimePicker = true }
             Spacer()
             if model.loading { ProgressView().controlSize(.small) }
         }
         .sheet(isPresented: $showTimePicker) {
-            LeaveAtPicker(date: model.leaveAt ?? .now.addingTimeInterval(15 * 60)) { d in
-                model.leaveAt = d; showTimePicker = false; model.run()
+            LeaveAtPicker(date: model.arriveBy ?? model.leaveAt ?? .now.addingTimeInterval(30 * 60),
+                          arriveBy: model.arriveBy != nil) { d, arrive in
+                if arrive { model.arriveBy = d; model.leaveAt = nil } else { model.leaveAt = d; model.arriveBy = nil }
+                showTimePicker = false; model.run()
             }
-            .presentationDetents([.height(640)])
+            .presentationDetents([.height(690)])
         }
     }
 
@@ -194,7 +218,19 @@ struct TripPlannerView: View {
                 appleMapsButton
             }
         } else {
-            if let at = model.leaveAt {
+            if let by = model.arriveBy {
+                HStack(spacing: 8) {
+                    Image(systemName: "flag.checkered").foregroundStyle(Theme.accent)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Arrive by \(TimeText.clock.string(from: by))").font(.headline)
+                        Text("\(TimeText.longDay(by)) · latest departures first").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                if Calendar.current.isDateInToday(by), let best = model.result.itineraries.first(where: { !$0.isWalkOnly }) {
+                    NextUpBanner(itinerary: best)
+                }
+            } else if let at = model.leaveAt {
                 HStack(spacing: 8) {
                     Image(systemName: "calendar").foregroundStyle(Theme.accent)
                     VStack(alignment: .leading, spacing: 1) {
@@ -208,15 +244,15 @@ struct TripPlannerView: View {
             }
             ForEach(model.result.itineraries) { it in
                 NavigationLink(value: SheetRoute.itinerary(it)) {
-                    ItineraryCard(itinerary: it, referenceDay: model.leaveAt ?? .now)
+                    ItineraryCard(itinerary: it, referenceDay: model.arriveBy ?? model.leaveAt ?? .now)
                 }
                 .buttonStyle(PressableStyle())
                 .tint(.primary)
             }
             Button { model.loadMore() } label: {
                 HStack(spacing: 6) {
-                    if model.loadingMore { ProgressView().controlSize(.small) } else { Image(systemName: "chevron.down") }
-                    Text("Later trips")
+                    if model.loadingMore { ProgressView().controlSize(.small) } else { Image(systemName: model.arriveBy == nil ? "chevron.down" : "chevron.up") }
+                    Text(model.arriveBy == nil ? "Later trips" : "Earlier trips")
                 }
                 .font(.subheadline.weight(.semibold))
                 .frame(maxWidth: .infinity)
@@ -250,7 +286,7 @@ struct TripPlannerView: View {
             if let note = model.result.notes.first {
                 Text(note).font(.footnote).foregroundStyle(.secondary)
             }
-            Text(model.leaveAt == nil
+            Text(model.isNow
                  ? "Live predictions where available; GO adds live delays and platforms to its schedule."
                  : "Scheduled times from each agency's published timetable. Check live times closer to departure.")
                 .font(.caption2).foregroundStyle(.tertiary)
@@ -280,7 +316,16 @@ struct TripPlannerView: View {
 /// Pick a day (Today, Tomorrow, Mon …) and a time — e.g. "Monday, 8:00 AM".
 struct LeaveAtPicker: View {
     @State var date: Date
-    let onDone: (Date) -> Void
+    @State var arriveBy = false
+    var allowsArriveBy = true
+    let onDone: (Date, Bool) -> Void
+
+    init(date: Date, arriveBy: Bool = false, allowsArriveBy: Bool = true, onDone: @escaping (Date, Bool) -> Void) {
+        _date = State(initialValue: date)
+        _arriveBy = State(initialValue: arriveBy)
+        self.allowsArriveBy = allowsArriveBy
+        self.onDone = onDone
+    }
 
     private var days: [Date] {
         let today = Calendar.current.startOfDay(for: .now)
@@ -292,6 +337,13 @@ struct LeaveAtPicker: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
+                if allowsArriveBy {
+                    Picker("Mode", selection: $arriveBy) {
+                        Text("Leave at").tag(false)
+                        Text("Arrive by").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                }
                 Text("Day").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
                 ScrollView(.horizontal) {
                     HStack(spacing: 8) {
@@ -327,7 +379,9 @@ struct LeaveAtPicker: View {
                     .datePickerStyle(.wheel)
                     .labelsHidden()
                     .frame(maxWidth: .infinity)
-                Button("Show trips for \(TimeText.longDay(date)), \(TimeText.clock.string(from: date))") { onDone(max(date, .now)) }
+                Button("\(arriveBy ? "Arrive by" : "Leave") \(TimeText.longDay(date)), \(TimeText.clock.string(from: date))") {
+                    onDone(arriveBy ? date : max(date, .now), arriveBy)
+                }
                     .buttonStyle(PrimaryButtonStyle())
             }
             .padding(.horizontal, 20)
@@ -475,6 +529,7 @@ struct LegStrip: View {
 struct ItineraryDetailView: View {
     let itinerary: Itinerary
     let router: Router
+    @State private var guiding = false
 
     var body: some View {
         ScrollView {
@@ -499,6 +554,15 @@ struct ItineraryDetailView: View {
         }
         .navigationTitle("Trip details")
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            if !itinerary.isWalkOnly {
+                Button { guiding = true } label: { Label("Start trip", systemImage: "location.north.line.fill") }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding(.horizontal, 16).padding(.vertical, 10)
+                    .background(.bar)
+            }
+        }
+        .fullScreenCover(isPresented: $guiding) { TripGuideView(itinerary: itinerary) }
         .onAppear { if let r = itinerary.firstRide { router.focus(r.from) } }
     }
 }
