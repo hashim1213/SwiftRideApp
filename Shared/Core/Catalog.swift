@@ -26,6 +26,10 @@ struct Agency: Identifiable, Hashable {
     let alerts: URL?
     let vehicles: URL?
     var feedFormat: FeedFormat = .protobuf
+    /// More trip-update feeds merged into the same index (e.g. TTC publishes subway separately).
+    var extraTripUpdates: [URL] = []
+    /// TTC: fall back to Umo/NextBus predictions for stops the GTFS-RT feed doesn't cover.
+    var umoFallback = false
     /// Some agencies publish garish primary colours; use the brand colour for every route instead.
     var ignoreRouteColors = false
     let website: URL?
@@ -55,8 +59,11 @@ enum Catalog {
         return [
             Agency(id: "wpg", name: "Winnipeg Transit", shortName: "Winnipeg Transit", brandHex: "0060A9", source: .winnipeg,
                    tripUpdates: nil, alerts: nil, vehicles: nil, website: u("https://winnipegtransit.com")),
-            Agency(id: "ttc", name: "Toronto Transit Commission", shortName: "TTC", brandHex: "DA251D", source: .ttc,
-                   tripUpdates: nil, alerts: u("https://bustime.ttc.ca/gtfsrt/alerts"), vehicles: u("https://bustime.ttc.ca/gtfsrt/vehicles"),
+            Agency(id: "ttc", name: "Toronto Transit Commission", shortName: "TTC", brandHex: "DA251D", source: .gtfsRealtime,
+                   tripUpdates: u("https://gtfsrt.ttc.ca/trips/update?format=binary"),
+                   alerts: u("https://gtfsrt.ttc.ca/alerts/all?format=binary"),
+                   vehicles: u("https://bustime.ttc.ca/gtfsrt/vehicles"),
+                   extraTripUpdates: [u("https://gtfsrt.ttc.ca/trips/subway?format=binary")!], umoFallback: true,
                    website: u("https://www.ttc.ca")),
             Agency(id: "go", name: "GO Transit", shortName: "GO", brandHex: "00853E", source: .metrolinx,
                    tripUpdates: nil, alerts: nil, vehicles: nil, website: u("https://www.gotransit.com")),

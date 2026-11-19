@@ -4,6 +4,17 @@
 <dict>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>SwiftRide reminds you before your bus or train leaves.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.HashimFarooq.SwiftRide</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>swiftride</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>

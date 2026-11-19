@@ -7,6 +7,8 @@ enum SheetRoute: Hashable {
     case alerts
     case saved
     case cities
+    case planner(from: Place, to: Place?)
+    case itinerary(Itinerary)
 }
 
 @MainActor @Observable
@@ -14,6 +16,10 @@ final class Router {
     var path: [SheetRoute] = []
     var detent: PresentationDetent = .fraction(0.45)
     var showSettings = false
+    /// Ask the map to centre on a stop (e.g. from a trip timeline).
+    var focusRequest: TransitStop?
+
+    func focus(_ stop: TransitStop) { focusRequest = stop }
 
     func open(_ r: SheetRoute) {
         path.append(r)
@@ -51,6 +57,8 @@ struct HomeView: View {
                         case .alerts: AlertsView(model: model)
                         case .saved: SavedView(model: model, router: router)
                         case .cities: CityPickerView { city in pick(city) }
+                        case .planner(let from, let to): TripPlannerView(model: PlannerModel(from: from, to: to), router: router)
+                        case .itinerary(let it): ItineraryDetailView(itinerary: it, router: router)
                         }
                     }
             }
@@ -87,6 +95,10 @@ struct HomeView: View {
             if phase == .active { model.reload(); model.startTicking(); location.start() }
             if phase == .background { model.stopTicking(); location.stop() }
         }
+        .onChange(of: router.focusRequest) { _, stop in
+            if let stop { model.focusedStop = stop }
+        }
+        .onOpenURL { url in handleDeepLink(url) }
         .onChange(of: model.focusedStop) { _, stop in
             guard let stop else { return }
             withAnimation(.smooth(duration: 0.6)) {
@@ -127,6 +139,26 @@ struct HomeView: View {
     /// Nudges the camera so the stop sits in the visible area above the sheet.
     private func offsetForSheet(_ c: CLLocationCoordinate2D) -> CLLocationCoordinate2D {
         .init(latitude: c.latitude - 0.0030, longitude: c.longitude)
+    }
+
+    /// swiftride://trip/<id>  ·  swiftride://stop/<agency>/<stopID>  ·  swiftride://plan
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "swiftride" else { return }
+        let parts = url.pathComponents.filter { $0 != "/" }
+        switch url.host {
+        case "trip":
+            if let id = parts.first, let trip = TripsStore.shared.trips.first(where: { $0.id == id }) {
+                router.path = [.planner(from: trip.from, to: trip.to)]
+            }
+        case "stop":
+            if parts.count >= 2, let stop = FavoritesStore.shared.stops.first(where: { $0.agencyID == parts[0] && $0.stopID == parts[1] }) {
+                router.path = [.stop(stop)]
+            }
+        case "plan":
+            router.path = [.planner(from: .currentLocation, to: nil)]
+        default: break
+        }
+        if router.detent == .height(SheetMetrics.peek) { router.detent = .fraction(0.45) }
     }
 
     /// No location and no chosen city — show Toronto so the app isn't empty, without remembering it.

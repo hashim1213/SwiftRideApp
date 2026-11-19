@@ -191,6 +191,14 @@ extension String {
         return t.isEmpty ? self : String(t)
     }
 
+    /// "Finch Station - Southbound Platform" → "Finch Station" (a stop name used as a destination).
+    var asHeadsign: String {
+        if let r = range(of: " - "), self[r.upperBound...].localizedCaseInsensitiveContains("platform") {
+            return String(self[..<r.lowerBound])
+        }
+        return self
+    }
+
     /// "LAWRENCE AVE EAST" → "Lawrence Ave East" for agencies that publish in all caps.
     var transitCased: String {
         let letters = filter(\.isLetter)

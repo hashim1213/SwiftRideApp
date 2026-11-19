@@ -1,6 +1,6 @@
 import Foundation
 
-enum TransitError: LocalizedError {
+enum TransitError: LocalizedError, Equatable {
     case offline, badResponse(Int), decoding, unavailable
 
     var errorDescription: String? {

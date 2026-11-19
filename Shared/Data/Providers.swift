@@ -79,6 +79,56 @@ enum Winnipeg {
         return out
     }
 
+    // MARK: Trip planner
+
+    private static func plannerStop(_ v: Any?) -> TransitStop? {
+        let d = J.dict(v)
+        let st = J.dict(d["stop"]).isEmpty ? d : J.dict(d["stop"])
+        guard !st.isEmpty else { return nil }
+        return stop(from: st)
+    }
+
+    /// Winnipeg Transit's own planner (handles transfers across the whole network).
+    static func plan(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, fromName: String, toName: String, after: Date) async -> [Itinerary] {
+        let f = DateFormatter(); f.timeZone = TimeZone(identifier: tz); f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"; let date = f.string(from: after)
+        f.dateFormat = "HH:mm"; let time = f.string(from: after)
+        let u = url("/trip-planner.json", [
+            .init(name: "origin", value: "geo/\(from.latitude),\(from.longitude)"),
+            .init(name: "destination", value: "geo/\(to.latitude),\(to.longitude)"),
+            .init(name: "date", value: date), .init(name: "time", value: time), .init(name: "mode", value: "depart-after"),
+        ])
+        guard let root = try? await Network.json(u) as? [String: Any] else { return [] }
+        return J.list(root["plans"]).compactMap { plan -> Itinerary? in
+            let segments = J.list(plan["segments"])
+            var legs: [Leg] = []
+            for (i, seg) in segments.enumerated() {
+                let times = J.dict(seg["times"])
+                let start = TransitDates.local(J.str(times["start"]), timeZone: tz)
+                let end = TransitDates.local(J.str(times["end"]), timeZone: tz)
+                switch J.str(seg["type"]) {
+                case "walk", "transfer":
+                    guard let start, let end else { continue }
+                    let secs = end.timeIntervalSince(start)
+                    let a = plannerStop(seg["from"])?.name ?? (i == 0 ? fromName : "Stop")
+                    let b = plannerStop(seg["to"])?.name ?? (i == segments.count - 1 ? toName : "Stop")
+                    if secs >= 30 { legs.append(.walk(WalkLeg(fromName: a, toName: b, distance: secs * 1.35 / 1.3))) }
+                case "ride":
+                    guard let start, let end else { return nil }
+                    let routeDict = J.dict(seg["route"])
+                    let r = route(from: routeDict)
+                    let fromStop = plannerStop(seg["from"]) ?? (i > 0 ? plannerStop(segments[i - 1]["to"]) : nil)
+                    let toStop = plannerStop(seg["to"]) ?? (i + 1 < segments.count ? plannerStop(segments[i + 1]["from"]) : nil)
+                    guard let fromStop, let toStop else { return nil }
+                    legs.append(.ride(RideLeg(route: r, headsign: J.str(J.dict(seg["variant"])["name"]) ?? r.longName,
+                                              from: fromStop, to: toStop, depart: start, arrive: end, isRealtime: false)))
+                default: continue
+                }
+            }
+            return legs.contains { if case .ride = $0 { return true } else { return false } } ? Itinerary(legs: legs) : nil
+        }
+    }
+
     static func alerts() async throws -> [ServiceAlert] {
         let root = J.dict(try await Network.json(url("/service-advisories.json")))
         return J.list(root["service-advisories"]).compactMap { a in

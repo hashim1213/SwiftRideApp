@@ -175,7 +175,7 @@ struct SavedView: View {
 
     var body: some View {
         List {
-            if favorites.stops.isEmpty {
+            if favorites.stops.isEmpty && TripsStore.shared.trips.isEmpty {
                 EmptyState(symbol: "star", title: "No saved stops yet",
                            message: "Tap the star on any stop to keep it here for one-tap access.")
                     .listRowBackground(Color.clear)
@@ -189,6 +189,19 @@ struct SavedView: View {
                     }
                     .onMove { favorites.move(from: $0, to: $1) }
                     .onDelete { favorites.remove(at: $0) }
+                }
+            }
+            let trips = TripsStore.shared
+            if !trips.trips.isEmpty {
+                Section("Trips") {
+                    ForEach(trips.trips) { t in
+                        Button { router.open(.planner(from: t.from, to: t.to)) } label: {
+                            Label(t.title, systemImage: "bookmark.fill")
+                        }
+                        .tint(.primary)
+                    }
+                    .onMove { trips.move(from: $0, to: $1) }
+                    .onDelete { idx in idx.map { trips.trips[$0] }.forEach(trips.remove) }
                 }
             }
             if !reminders.reminders.isEmpty {

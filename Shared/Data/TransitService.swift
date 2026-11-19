@@ -68,7 +68,13 @@ struct TransitService {
         case .winnipeg: list = try await Winnipeg.departures(stop: stop)
         case .ttc: list = try await TTC.departures(stop: stop, data: await store.data(for: agency))
         case .metrolinx: list = try await GO.departures(stop: stop, data: await store.data(for: agency))
-        case .gtfsRealtime: list = try await gtfsDepartures(stop: stop, agency: agency)
+        case .gtfsRealtime:
+            let live = (try? await gtfsDepartures(stop: stop, agency: agency)) ?? []
+            if live.isEmpty && agency.umoFallback {
+                list = (try? await TTC.departures(stop: stop, data: await store.data(for: agency))) ?? []
+            } else {
+                list = live
+            }
         }
         let cutoff = Date().addingTimeInterval(-45)
         return list.filter { $0.time >= cutoff }.sorted { $0.time < $1.time }
@@ -83,8 +89,9 @@ struct TransitService {
             if a.lastStopID == stop.stopID { return nil }
             guard let route = a.routeID.flatMap({ data.routeByID[$0] }) ?? data.route(forTrip: a.tripID) else { return nil }
             let headsign = data.headsign(forTrip: a.tripID)
+                ?? a.lastStopID.flatMap { data.headsign(route: route, lastStopID: $0) }
                 ?? a.vehicleLabel.flatMap(Self.cleanLabel)
-                ?? a.lastStopID.flatMap { data.stopByID[$0]?.name }
+                ?? a.lastStopID.flatMap { data.stopByID[$0]?.name.asHeadsign }
                 ?? route.longName
             return Departure(id: "\(a.tripID)@\(stop.stopID)", route: route, headsign: headsign,
                              time: Date(timeIntervalSince1970: TimeInterval(a.time)), isRealtime: true,

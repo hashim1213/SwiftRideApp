@@ -7,18 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C1B2C3D4E5F6A7B8C9D0E1F7 /* BusHomeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F531DC232BB0BFDF009D0842 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F531DC072BB0B9BE009D0842 /* WidgetKit.framework */; };
 		F531DC242BB0BFDF009D0842 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F531DC092BB0B9BF009D0842 /* SwiftUI.framework */; };
-		F531DC272BB0BFDF009D0842 /* BusHomeBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */; };
-		F531DC292BB0BFDF009D0842 /* BusHomeLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */; };
-		F531DC2B2BB0BFDF009D0842 /* BusHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F531DC2A2BB0BFDF009D0842 /* BusHome.swift */; };
-		F531DC2D2BB0BFE2009D0842 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */; };
 		F58619822AD8E0AB00C56D78 /* SwiftRideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58619812AD8E0AB00C56D78 /* SwiftRideTests.swift */; };
 		F586198C2AD8E0AB00C56D78 /* SwiftRideUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F586198B2AD8E0AB00C56D78 /* SwiftRideUITests.swift */; };
 		F586198E2AD8E0AB00C56D78 /* SwiftRideUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F586198D2AD8E0AB00C56D78 /* SwiftRideUITestsLaunchTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		C1B2C3D4E5F6A7B8C9D0E1F9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F58619602AD8E0A700C56D78 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F531DC212BB0BFDF009D0842;
+			remoteInfo = BusHomeExtension;
+		};
 		F586197E2AD8E0AB00C56D78 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F58619602AD8E0A700C56D78 /* Project object */;
@@ -35,15 +39,24 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		C1B2C3D4E5F6A7B8C9D0E1F8 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C1B2C3D4E5F6A7B8C9D0E1F7 /* BusHomeExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		F531DC072BB0B9BE009D0842 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		F531DC092BB0B9BF009D0842 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BusHomeExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHomeBundle.swift; sourceTree = "<group>"; };
-		F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHomeLiveActivity.swift; sourceTree = "<group>"; };
-		F531DC2A2BB0BFDF009D0842 /* BusHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusHome.swift; sourceTree = "<group>"; };
-		F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F531DC2E2BB0BFE2009D0842 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F58619682AD8E0A700C56D78 /* SwiftRide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftRide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F586197D2AD8E0AB00C56D78 /* SwiftRideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftRideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F58619812AD8E0AB00C56D78 /* SwiftRideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftRideTests.swift; sourceTree = "<group>"; };
@@ -60,10 +73,19 @@
 			);
 			target = F58619672AD8E0A700C56D78 /* SwiftRide */;
 		};
+		B1B2C3D4E5F6A7B8C9D0E1F5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F531DC212BB0BFDF009D0842 /* BusHomeExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* SwiftRide */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A1B2C3D4E5F6A7B8C9D0E1F3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SwiftRide; sourceTree = "<group>"; };
+		B1B2C3D4E5F6A7B8C9D0E1F4 /* BusHome */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (B1B2C3D4E5F6A7B8C9D0E1F5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BusHome; sourceTree = "<group>"; };
+		B1B2C3D4E5F6A7B8C9D0E1F6 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,25 +131,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		F531DC252BB0BFDF009D0842 /* BusHome */ = {
-			isa = PBXGroup;
-			children = (
-				F531DC262BB0BFDF009D0842 /* BusHomeBundle.swift */,
-				F531DC282BB0BFDF009D0842 /* BusHomeLiveActivity.swift */,
-				F531DC2A2BB0BFDF009D0842 /* BusHome.swift */,
-				F531DC2C2BB0BFE2009D0842 /* Assets.xcassets */,
-				F531DC2E2BB0BFE2009D0842 /* Info.plist */,
-			);
-			path = BusHome;
-			sourceTree = "<group>";
-		};
 		F586195F2AD8E0A700C56D78 = {
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* SwiftRide */,
 				F58619802AD8E0AB00C56D78 /* SwiftRideTests */,
 				F586198A2AD8E0AB00C56D78 /* SwiftRideUITests */,
-				F531DC252BB0BFDF009D0842 /* BusHome */,
+				B1B2C3D4E5F6A7B8C9D0E1F6 /* Shared */,
+				B1B2C3D4E5F6A7B8C9D0E1F4 /* BusHome */,
 				F531DC062BB0B9BE009D0842 /* Frameworks */,
 				F58619692AD8E0A700C56D78 /* Products */,
 			);
@@ -176,6 +187,10 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				B1B2C3D4E5F6A7B8C9D0E1F4 /* BusHome */,
+				B1B2C3D4E5F6A7B8C9D0E1F6 /* Shared */,
+			);
 			name = BusHomeExtension;
 			productName = BusHomeExtension;
 			productReference = F531DC222BB0BFDF009D0842 /* BusHomeExtension.appex */;
@@ -188,13 +203,16 @@
 				F58619642AD8E0A700C56D78 /* Sources */,
 				F58619652AD8E0A700C56D78 /* Frameworks */,
 				F58619662AD8E0A700C56D78 /* Resources */,
+				C1B2C3D4E5F6A7B8C9D0E1F8 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C1B2C3D4E5F6A7B8C9D0E1FA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* SwiftRide */,
+				B1B2C3D4E5F6A7B8C9D0E1F6 /* Shared */,
 			);
 			name = SwiftRide;
 			productName = SwiftRide;
@@ -289,7 +307,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F531DC2D2BB0BFE2009D0842 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,9 +338,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F531DC292BB0BFDF009D0842 /* BusHomeLiveActivity.swift in Sources */,
-				F531DC2B2BB0BFDF009D0842 /* BusHome.swift in Sources */,
-				F531DC272BB0BFDF009D0842 /* BusHomeBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,6 +368,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		C1B2C3D4E5F6A7B8C9D0E1FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F531DC212BB0BFDF009D0842 /* BusHomeExtension */;
+			targetProxy = C1B2C3D4E5F6A7B8C9D0E1F9 /* PBXContainerItemProxy */;
+		};
 		F586197F2AD8E0AB00C56D78 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = F58619672AD8E0A700C56D78 /* SwiftRide */;
@@ -372,19 +391,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = BusHome/BusHome.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BusHome/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = BusHome;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftRide;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide.BusHome;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -399,19 +419,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = BusHome/BusHome.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BusHome/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = BusHome;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftRide;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HashimFarooq.SwiftRide.BusHome;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -549,6 +570,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SwiftRide/SwiftRide.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftRide/Preview Content\"";
@@ -583,6 +605,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SwiftRide/SwiftRide.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftRide/Preview Content\"";

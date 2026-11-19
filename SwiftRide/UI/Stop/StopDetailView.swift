@@ -51,6 +51,9 @@ struct StopDetailView: View {
                 Text(stop.name).font(.headline).lineLimit(1)
             }
             ToolbarItem(placement: .topBarTrailing) {
+                ShareLink(item: shareText) { Image(systemName: "square.and.arrow.up") }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button { favorites.toggle(stop) } label: {
                     Image(systemName: favorites.contains(stop) ? "star.fill" : "star")
                         .foregroundStyle(favorites.contains(stop) ? Theme.signal : .primary)
@@ -154,15 +157,14 @@ struct StopDetailView: View {
     private var actions: some View {
         HStack(spacing: 10) {
             actionButton(favorites.contains(stop) ? "Saved" : "Save", favorites.contains(stop) ? "star.fill" : "star") { favorites.toggle(stop) }
-            actionButton("Walk here", "figure.walk") {
+            actionButton("Trip from", "arrow.up.right.circle") { router.open(.planner(from: .stop(stop), to: nil)) }
+            actionButton("Trip to", "arrow.down.right.circle") { router.open(.planner(from: .currentLocation, to: .stop(stop))) }
+            actionButton("Walk", "figure.walk") {
                 let item = MKMapItem(placemark: MKPlacemark(coordinate: stop.coordinate))
                 item.name = stop.name
                 item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
             }
-            ShareLink(item: shareText) {
-                actionLabel("Share", "square.and.arrow.up")
-            }
-            .buttonStyle(PressableStyle())
+
         }
         .tint(.primary)
     }
@@ -218,7 +220,7 @@ struct StopDetailView: View {
 
     private var emptyMessage: String {
         if routes.contains(where: { $0.mode == .subway }) && stop.agencyID == "ttc" {
-            return "TTC subway trains usually run every 2–6 minutes. Live subway predictions aren't published for every platform."
+            return "TTC subway trains usually run every 2–6 minutes. Live times will appear here when the TTC publishes them for this platform."
         }
         switch agency?.source {
         case .gtfsRealtime?, .ttc?: return "Live predictions appear about an hour before a trip starts. Service may have ended for the day."
@@ -260,9 +262,9 @@ struct StopDetailView: View {
     private func sourceNote(_ a: Agency) -> String {
         switch a.source {
         case .winnipeg: return "Data: Winnipeg Transit Open Data. Live times shown with the signal icon."
-        case .ttc: return "Data: TTC via Umo. Times update every 20 seconds."
+        case .ttc: return "Data: TTC GTFS-Realtime and Umo. Times update every 20 seconds."
         case .metrolinx: return "Data: Metrolinx Open Data API (GO Transit). Platforms are confirmed shortly before departure."
-        case .gtfsRealtime: return "Data: \(a.name) GTFS-Realtime."
+        case .gtfsRealtime: return a.id == "ttc" ? "Data: TTC GTFS-Realtime (bus, streetcar & subway). Times update every 20 seconds." : "Data: \(a.name) GTFS-Realtime."
         }
     }
 

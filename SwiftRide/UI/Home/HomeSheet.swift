@@ -6,11 +6,13 @@ struct HomeSheet: View {
     let router: Router
     let location: LocationService
     @State private var favorites = FavoritesStore.shared
+    @State private var trips = TripsStore.shared
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 searchBar
+                if !trips.trips.isEmpty { tripsStrip }
                 if !favorites.stops.isEmpty { savedStrip }
                 if !model.importantAlerts.isEmpty { alertBanner }
                 header
@@ -30,18 +32,29 @@ struct HomeSheet: View {
 
     private var searchBar: some View {
         HStack(spacing: 10) {
-            Button { router.open(.search) } label: {
+            Button { router.open(.planner(from: .currentLocation, to: nil)) } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                    Text("Search stops & stations").foregroundStyle(.secondary)
+                    Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(Theme.accent)
+                    Text("Where to?").font(.body.weight(.semibold)).foregroundStyle(.primary)
                     Spacer()
                 }
-                .font(.body)
                 .padding(.horizontal, 14)
                 .frame(height: 46)
                 .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(PressableStyle())
+            .accessibilityHint("Plan a trip")
+
+            Button { router.open(.search) } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 46, height: 46)
+                    .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("Search stops and stations")
 
             Button { router.open(.cities) } label: {
                 Image(systemName: "globe.americas.fill")
@@ -54,6 +67,34 @@ struct HomeSheet: View {
         }
         .padding(.top, 18)
         .tint(.primary)
+    }
+
+    // MARK: Saved trips
+
+    private var tripsStrip: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Your trips").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(trips.trips) { trip in
+                        Button { router.open(.planner(from: trip.from, to: trip.to)) } label: { SavedTripCard(trip: trip) }
+                            .buttonStyle(PressableStyle())
+                            .tint(.primary)
+                            .contextMenu {
+                                Button { router.open(.planner(from: trip.to, to: trip.from)) } label: {
+                                    Label("Trip back", systemImage: "arrow.uturn.backward")
+                                }
+                                if !trips.isSaved(from: trip.to, to: trip.from) {
+                                    Button { trips.saveReturn(of: trip) } label: { Label("Save trip back", systemImage: "bookmark") }
+                                }
+                                Button(role: .destructive) { trips.remove(trip) } label: { Label("Remove", systemImage: "trash") }
+                            }
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+            .scrollClipDisabled()
+        }
     }
 
     // MARK: Saved

@@ -14,9 +14,18 @@ actor RealtimeCache {
         let cancelled: Bool
     }
 
+    /// One live trip with its remaining stops in order (used by the trip planner).
+    struct LiveTrip {
+        let tripID: String
+        let routeID: String?
+        let vehicleLabel: String?
+        let stops: [(stopID: String, time: Int64)]
+    }
+
     struct TripIndex {
         let fetchedAt: Date
         let byStop: [String: [Arrival]]
+        let trips: [String: LiveTrip]
     }
 
     private struct Entry<T> { let at: Date; let value: T }
@@ -30,12 +39,20 @@ actor RealtimeCache {
         let key = url.absoluteString
         if let t = inflight[key] { return try await t.value }
         let task = Task.detached(priority: .userInitiated) { () throws -> GTFSRT.Feed in
-            let data = try await Network.data(url)
-            do {
-                return format == .json ? try GTFSRT.decodeJSON(data) : try GTFSRT.decode(data)
-            } catch {
-                throw TransitError.decoding
+            // Some agency servers hiccup (redirects, truncated downloads) — one retry smooths that over.
+            var lastError: Error = TransitError.decoding
+            for attempt in 0..<2 {
+                if attempt > 0 { try? await Task.sleep(for: .milliseconds(600)) }
+                do {
+                    let data = try await Network.data(url)
+                    return format == .json ? try GTFSRT.decodeJSON(data) : try GTFSRT.decode(data)
+                } catch let e as TransitError where e == .offline {
+                    throw e
+                } catch {
+                    lastError = error is GTFSRT.DecodeError ? TransitError.decoding : error
+                }
             }
+            throw lastError
         }
         inflight[key] = task
         defer { inflight[key] = nil }
@@ -45,19 +62,35 @@ actor RealtimeCache {
     func tripIndex(for agency: Agency, maxAge: TimeInterval = 30) async throws -> TripIndex {
         if let e = trips[agency.id], Date().timeIntervalSince(e.at) < maxAge { return e.value }
         guard let url = agency.tripUpdates else { throw TransitError.unavailable }
-        let f = try await feed(url, format: agency.feedFormat)
+        var f: GTFSRT.Feed
+        do {
+            f = try await feed(url, format: agency.feedFormat)
+        } catch {
+            // Serve slightly stale data rather than nothing.
+            if let e = trips[agency.id], Date().timeIntervalSince(e.at) < 300 { return e.value }
+            throw error
+        }
+        for extra in agency.extraTripUpdates {
+            if let more = try? await feed(extra, format: agency.feedFormat) { f.tripUpdates += more.tripUpdates }
+        }
         let now = Int64(Date().timeIntervalSince1970)
         let index = await Task.detached(priority: .userInitiated) { () -> TripIndex in
             var byStop: [String: [Arrival]] = [:]
+            var liveTrips: [String: LiveTrip] = [:]
             for tu in f.tripUpdates {
                 let last = tu.stopTimes.last?.stopID
+                var seq: [(stopID: String, time: Int64)] = []
                 for st in tu.stopTimes where !st.skipped && st.time >= now - 60 && st.time <= now + 4 * 3600 {
                     byStop[st.stopID, default: []].append(Arrival(tripID: tu.tripID, routeID: tu.routeID, vehicleID: tu.vehicleID,
                                                                   vehicleLabel: tu.vehicleLabel, time: st.time, lastStopID: last,
                                                                   cancelled: tu.cancelled))
+                    seq.append((st.stopID, st.time))
+                }
+                if !tu.cancelled && seq.count > 1 {
+                    liveTrips[tu.tripID] = LiveTrip(tripID: tu.tripID, routeID: tu.routeID, vehicleLabel: tu.vehicleLabel, stops: seq)
                 }
             }
-            return TripIndex(fetchedAt: Date(), byStop: byStop)
+            return TripIndex(fetchedAt: Date(), byStop: byStop, trips: liveTrips)
         }.value
         trips[agency.id] = Entry(at: Date(), value: index)
         return index

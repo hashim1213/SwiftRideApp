@@ -3,6 +3,7 @@ import CoreLocation
 import CoreData
 import UserNotifications
 import Observation
+import WidgetKit
 
 // MARK: - Location
 
@@ -40,7 +41,11 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let last = locations.last, last.horizontalAccuracy >= 0, last.horizontalAccuracy < 500 else { return }
-        Task { @MainActor in self.location = last }
+        Task { @MainActor in
+            self.location = last
+            AppGroup.defaults.set(last.coordinate.latitude, forKey: AppGroup.lastLatKey)
+            AppGroup.defaults.set(last.coordinate.longitude, forKey: AppGroup.lastLonKey)
+        }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
@@ -55,7 +60,7 @@ final class FavoritesStore {
     private let key = "savedStops.v4"
 
     init() {
-        if let d = UserDefaults.standard.data(forKey: key), let s = try? JSONDecoder().decode([TransitStop].self, from: d) {
+        if let d = AppGroup.data(forKey: key), let s = try? JSONDecoder().decode([TransitStop].self, from: d) {
             stops = s
         } else {
             stops = Self.migrateLegacyFavourites()
@@ -74,7 +79,14 @@ final class FavoritesStore {
     func remove(at offsets: IndexSet) { stops.remove(atOffsets: offsets); persist() }
 
     private func persist() {
-        if let d = try? JSONEncoder().encode(stops) { UserDefaults.standard.set(d, forKey: key) }
+        if let d = try? JSONEncoder().encode(stops) { AppGroup.defaults.set(d, forKey: key) }
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Fresh copy straight from shared storage (used by widgets, which don't hold the store).
+    nonisolated static func load() -> [TransitStop] {
+        guard let d = AppGroup.data(forKey: "savedStops.v4") else { return [] }
+        return (try? JSONDecoder().decode([TransitStop].self, from: d)) ?? []
     }
 
     /// SwiftRide 3 kept Winnipeg favourites in Core Data; carry them over once.

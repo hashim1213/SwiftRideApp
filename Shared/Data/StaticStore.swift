@@ -13,7 +13,11 @@ final class AgencyData: @unchecked Sendable {
     let stopByID: [String: TransitStop]
     let stopByCode: [String: TransitStop]
     /// trip_id → (route index, headsign index), only for feeds whose realtime trips lack route_id.
+    let grid: StopGrid
     private let trips: [String: [Int]]
+    private let routeIndex: [String: Int]
+    /// "routeIndex|terminalStopID" → headsign, from the static schedule.
+    private let terminals: [String: String]
     private let headsigns: [String]
 
     init(agency: Agency, json: [String: Any]) {
@@ -42,6 +46,9 @@ final class AgencyData: @unchecked Sendable {
         self.stops = stops
         stopByID = Dictionary(stops.map { ($0.stopID, $0) }, uniquingKeysWith: { a, _ in a })
         stopByCode = Dictionary(stops.map { ($0.displayCode, $0) }, uniquingKeysWith: { a, _ in a })
+        grid = StopGrid(stops)
+        routeIndex = Dictionary(routes.enumerated().map { ($1.routeID, $0) }, uniquingKeysWith: { a, _ in a })
+        terminals = json["terminals"] as? [String: String] ?? [:]
         trips = json["trips"] as? [String: [Int]] ?? [:]
         headsigns = json["headsigns"] as? [String] ?? []
     }
@@ -54,6 +61,15 @@ final class AgencyData: @unchecked Sendable {
     func headsign(forTrip tripID: String) -> String? {
         guard let t = trips[tripID], t.count > 1, t[1] < headsigns.count else { return nil }
         return headsigns[t[1]].nilIfEmpty?.transitCased
+    }
+
+    /// Headsign for a trip on `route` that ends at `lastStopID` ("Dufferin Gate" rather than the last stop's street name).
+    func headsign(route: TransitRoute, lastStopID: String) -> String? {
+        guard let i = routeIndex[route.routeID] else { return nil }
+        guard let raw = terminals["\(i)|\(lastStopID)"]?.nilIfEmpty else { return nil }
+        // TTC style: "West - 54 Lawrence East towards Don Valley Station" → "Don Valley Station"
+        if raw.localizedCaseInsensitiveContains("towards ") { return TTC.headsign(from: raw) ?? raw }
+        return raw.transitCased
     }
 
     func routes(for stop: TransitStop) -> [TransitRoute] {
@@ -91,7 +107,7 @@ actor StaticStore {
         if let d = cache[agency.id] { return d }
         if let t = loading[agency.id] { return await t.value }
         let task = Task.detached(priority: .userInitiated) { () -> AgencyData? in
-            guard let url = Bundle.main.url(forResource: agency.id, withExtension: "json"),
+            guard let url = Bundle.appMain.url(forResource: agency.id, withExtension: "json"),
                   let raw = try? Data(contentsOf: url),
                   let json = try? JSONSerialization.jsonObject(with: raw) as? [String: Any] else { return nil }
             return AgencyData(agency: agency, json: json)

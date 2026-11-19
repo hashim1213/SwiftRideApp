@@ -88,4 +88,39 @@ final class SwiftRideTests: XCTestCase {
         print(text)
         try? text.write(toFile: "/tmp/swiftride-live-coverage.txt", atomically: true, encoding: .utf8)
     }
+
+    /// Plans a few real trips and writes a readable report (live network).
+    func testLivePlanner() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["SWIFTRIDE_LIVE_TESTS"] == "1", "Set SWIFTRIDE_LIVE_TESTS=1 to hit live feeds")
+        let go = try XCTUnwrap(Catalog.agency("go"))
+        let goData = await StaticStore.shared.data(for: go)
+        let ml = try XCTUnwrap(goData?.stopByID["ML"]), un = try XCTUnwrap(goData?.stopByID["UN"])
+        let f = DateFormatter(); f.dateFormat = "HH:mm"
+        var report = ""
+        func describe(_ title: String, _ r: PlanResult) {
+            report += "== \(title): \(r.itineraries.count) options \(r.notes)\n"
+            for it in r.itineraries.prefix(4) {
+                let legs = it.legs.map { leg -> String in
+                    switch leg {
+                    case .walk(let w): return "walk\(w.minutes)"
+                    case .ride(let r): return "\(r.route.badgeText)[\(r.from.displayCode)→\(r.to.displayCode)\(r.platform.map { " P" + $0 } ?? "")\(r.isRealtime ? " live" : "")]"
+                    }
+                }.joined(separator: " > ")
+                report += "  \(f.string(from: it.leaveAt))→\(f.string(from: it.arriveAt)) \(legs)\n"
+            }
+        }
+        describe("Milton GO → Union", await TripPlanner.shared.plan(from: .stop(ml), to: .stop(un), current: nil))
+        describe("Union → Milton GO", await TripPlanner.shared.plan(from: .stop(un), to: .stop(ml), current: nil))
+        describe("Toronto: King&Bay → Spadina&Dundas", await TripPlanner.shared.plan(
+            from: .point(name: "King & Bay", subtitle: nil, latitude: 43.6487, longitude: -79.3800),
+            to: .point(name: "Spadina & Dundas", subtitle: nil, latitude: 43.6527, longitude: -79.3977), current: nil))
+        describe("Calgary: downtown → Chinook", await TripPlanner.shared.plan(
+            from: .point(name: "Downtown", subtitle: nil, latitude: 51.0458, longitude: -114.0631),
+            to: .point(name: "Chinook Centre", subtitle: nil, latitude: 50.9980, longitude: -114.0735), current: nil))
+        describe("Winnipeg: Portage&Main → U of M", await TripPlanner.shared.plan(
+            from: .point(name: "Portage & Main", subtitle: nil, latitude: 49.8951, longitude: -97.1384),
+            to: .point(name: "University of Manitoba", subtitle: nil, latitude: 49.8075, longitude: -97.1366), current: nil))
+        print(report)
+        try? report.write(toFile: "/tmp/swiftride-planner.txt", atomically: true, encoding: .utf8)
+    }
 }
