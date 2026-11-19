@@ -20,6 +20,8 @@ actor RealtimeCache {
         let routeID: String?
         let vehicleLabel: String?
         let stops: [(stopID: String, time: Int64)]
+        /// Set for timetable trips (live trips get theirs from the static data).
+        var headsign: String? = nil
     }
 
     struct TripIndex {

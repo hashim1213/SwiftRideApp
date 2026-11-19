@@ -17,6 +17,8 @@ struct StopDetailView: View {
     @State private var reminderTarget: Departure?
     @State private var toast: String?
     @State private var showAlerts = false
+    @State private var at: Date?          // nil = live, otherwise show the timetable from this time
+    @State private var pickingTime = false
     @State private var favorites = FavoritesStore.shared
     @State private var reminders = ReminderStore.shared
     @AppStorage(Prefs.clockTimes) private var clockTimes = false
@@ -31,6 +33,7 @@ struct StopDetailView: View {
                 header
                 actions
                 if !alerts.isEmpty { alertsSummary }
+                timeChips
                 if !departures.isEmpty {
                     Picker("Layout", selection: $layout) {
                         ForEach(Layout.allCases, id: \.self) { Text($0.rawValue) }
@@ -93,10 +96,39 @@ struct StopDetailView: View {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(20))
                 if Task.isCancelled { break }
-                if scenePhase == .active { await load() }
+                if scenePhase == .active && at == nil { await load() }
             }
         }
         .onDisappear { if model.focusedStop?.id == stop.id { model.focusedStop = nil } }
+    }
+
+    // MARK: Plan ahead
+
+    private var supportsTimetable: Bool { agency?.source == .gtfsRealtime }
+
+    @ViewBuilder private var timeChips: some View {
+        HStack(spacing: 8) {
+            FilterChip(title: "Now", symbol: "dot.radiowaves.up.forward", selected: at == nil) {
+                at = nil; Task { await load() }
+            }
+            FilterChip(title: at.map { "\(TimeText.longDay($0)), \(TimeText.clock.string(from: $0))" } ?? "Plan ahead…",
+                       symbol: "calendar", selected: at != nil) { pickingTime = true }
+            Spacer()
+        }
+        .sheet(isPresented: $pickingTime) {
+            LeaveAtPicker(date: at ?? Calendar.current.date(bySettingHour: 8, minute: 0, second: 0,
+                                                            of: Calendar.current.date(byAdding: .day, value: 1, to: .now)!)!) { d in
+                at = d; pickingTime = false
+                Task { await load() }
+            }
+            .presentationDetents([.height(640)])
+        }
+        if at != nil && !supportsTimetable {
+            Label(agency?.source == .metrolinx ? "For future GO times, use Trip from / Trip to — it searches GO's full schedule."
+                                               : "Future times for this stop are available through trip planning.",
+                  systemImage: "info.circle")
+                .font(.footnote).foregroundStyle(.secondary)
+        }
     }
 
     // MARK: Alerts (compact, expandable)
@@ -272,7 +304,7 @@ struct StopDetailView: View {
 
     private func load() async {
         do {
-            let d = try await TransitService.shared.departures(for: stop)
+            let d = try await TransitService.shared.departures(for: stop, at: at)
             withAnimation(.snappy) { departures = d }
             error = nil
             lastLoaded = Date()

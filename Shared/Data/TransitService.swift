@@ -61,28 +61,44 @@ struct TransitService {
 
     // MARK: Departures
 
-    func departures(for stop: TransitStop) async throws -> [Departure] {
+    /// Departures from a stop. With `at` in the future (or when nothing is live) they come from the timetable.
+    func departures(for stop: TransitStop, at: Date? = nil) async throws -> [Departure] {
         guard let agency = Catalog.agency(stop.agencyID) else { return [] }
+        if let at, at.timeIntervalSinceNow > 60 * 60 {
+            switch agency.source {
+            case .gtfsRealtime: return await scheduledDepartures(stop: stop, agency: agency, from: at)
+            case .metrolinx, .winnipeg, .ttc: break // these APIs only answer "next"; the planner covers future GO/Winnipeg trips
+            }
+        }
         let list: [Departure]
         switch agency.source {
         case .winnipeg: list = try await Winnipeg.departures(stop: stop)
         case .ttc: list = try await TTC.departures(stop: stop, data: await store.data(for: agency))
         case .metrolinx: list = try await GO.departures(stop: stop, data: await store.data(for: agency))
         case .gtfsRealtime:
-            let live = (try? await gtfsDepartures(stop: stop, agency: agency)) ?? []
+            var live = (try? await gtfsDepartures(stop: stop, agency: agency)) ?? []
             if live.isEmpty && agency.umoFallback {
-                list = (try? await TTC.departures(stop: stop, data: await store.data(for: agency))) ?? []
-            } else {
-                list = live
+                live = (try? await TTC.departures(stop: stop, data: await store.data(for: agency))) ?? []
             }
+            if live.isEmpty { live = await scheduledDepartures(stop: stop, agency: agency, from: at ?? .now) }
+            list = live
         }
         let cutoff = Date().addingTimeInterval(-45)
         return list.filter { $0.time >= cutoff }.sorted { $0.time < $1.time }
     }
 
-    private func gtfsDepartures(stop: TransitStop, agency: Agency) async throws -> [Departure] {
+    /// Timetable departures for the next few hours from `from`.
+    func scheduledDepartures(stop: TransitStop, agency: Agency, from: Date) async -> [Departure] {
+        guard let idx = await ScheduleStore.shared.index(for: agency, from: from, hours: 4) else { return [] }
+        let list = (try? await gtfsDepartures(stop: stop, agency: agency, index: idx, isRealtime: false)) ?? []
+        return list.filter { $0.time >= from.addingTimeInterval(-60) }.sorted { $0.time < $1.time }
+    }
+
+    private func gtfsDepartures(stop: TransitStop, agency: Agency, index given: RealtimeCache.TripIndex? = nil,
+                                isRealtime: Bool = true) async throws -> [Departure] {
         guard let data = await store.data(for: agency) else { throw TransitError.unavailable }
-        let index = try await rt.tripIndex(for: agency)
+        let index: RealtimeCache.TripIndex
+        if let given { index = given } else { index = try await rt.tripIndex(for: agency) }
         let arrivals = index.byStop[stop.stopID] ?? []
         return arrivals.compactMap { a -> Departure? in
             // A trip that ends at this stop isn't something you can board here.
@@ -94,7 +110,7 @@ struct TransitService {
                 ?? a.lastStopID.flatMap { data.stopByID[$0]?.name.asHeadsign }
                 ?? route.longName
             return Departure(id: "\(a.tripID)@\(stop.stopID)", route: route, headsign: headsign,
-                             time: Date(timeIntervalSince1970: TimeInterval(a.time)), isRealtime: true,
+                             time: Date(timeIntervalSince1970: TimeInterval(a.time)), isRealtime: isRealtime,
                              vehicleID: a.vehicleID, isCancelled: a.cancelled)
         }
     }

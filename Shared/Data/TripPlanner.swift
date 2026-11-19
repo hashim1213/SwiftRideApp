@@ -224,9 +224,18 @@ struct TripPlanner {
                 group.addTask {
                     switch agency.source {
                     case .gtfsRealtime:
-                        let live = await realtimePlans(agency: agency, origin: oc, dest: dc, after: departAfter)
-                        if live.isEmpty && agency.umoFallback { return await ttcPlans(origin: oc, dest: dc) }
-                        return live
+                        // Live predictions for the next hour or so; the timetable for later (or when nothing's live).
+                        let future = departAfter.timeIntervalSinceNow > 75 * 60
+                        if !future {
+                            let live = await realtimePlans(agency: agency, origin: oc, dest: dc, after: departAfter, index: nil)
+                            if !live.isEmpty { return live }
+                            if agency.umoFallback {
+                                let umo = await ttcPlans(origin: oc, dest: dc)
+                                if !umo.isEmpty { return umo }
+                            }
+                        }
+                        guard let idx = await ScheduleStore.shared.index(for: agency, from: departAfter, hours: 2.5) else { return [] }
+                        return await realtimePlans(agency: agency, origin: oc, dest: dc, after: departAfter, index: idx, isRealtime: false)
                     case .metrolinx: return await goPlans(origin: oc, dest: dc, after: departAfter)
                     case .ttc: return await ttcPlans(origin: oc, dest: dc)
                     case .winnipeg: return await winnipegPlans(from: o, to: d, fromName: from.title, toName: to.title, after: departAfter)
@@ -292,15 +301,19 @@ struct TripPlanner {
 
     // MARK: GTFS-Realtime engine (direct + one transfer)
 
-    private func realtimePlans(agency: Agency, origin: [Candidate], dest: [Candidate], after: Date) async -> [Itinerary] {
-        guard let data = await store.data(for: agency), let index = try? await rt.tripIndex(for: agency) else { return [] }
+    private func realtimePlans(agency: Agency, origin: [Candidate], dest: [Candidate], after: Date,
+                               index given: RealtimeCache.TripIndex?, isRealtime: Bool = true) async -> [Itinerary] {
+        guard let data = await store.data(for: agency) else { return [] }
+        var fetched: RealtimeCache.TripIndex?
+        if given == nil { fetched = try? await rt.tripIndex(for: agency) }
+        guard let index = given ?? fetched else { return [] }
         let start = Int64(max(after, .now).timeIntervalSince1970)
         let oWalk = Dictionary(origin.map { ($0.stop.stopID, $0) }, uniquingKeysWith: { a, b in a.walk.distance <= b.walk.distance ? a : b })
         let dWalk = Dictionary(dest.map { ($0.stop.stopID, $0) }, uniquingKeysWith: { a, b in a.walk.distance <= b.walk.distance ? a : b })
 
         func route(_ t: RealtimeCache.LiveTrip) -> TransitRoute? { t.routeID.flatMap { data.routeByID[$0] } ?? data.route(forTrip: t.tripID) }
         func headsign(_ t: RealtimeCache.LiveTrip, _ r: TransitRoute) -> String {
-            data.headsign(forTrip: t.tripID) ?? data.headsign(route: r, lastStopID: t.stops.last!.stopID)
+            t.headsign ?? data.headsign(forTrip: t.tripID) ?? data.headsign(route: r, lastStopID: t.stops.last!.stopID)
                 ?? data.stopByID[t.stops.last!.stopID]?.name.asHeadsign ?? ""
         }
         func ride(_ t: RealtimeCache.LiveTrip, _ i: Int, _ j: Int) -> RideLeg? {
@@ -308,7 +321,7 @@ struct TripPlanner {
             return RideLeg(route: r, headsign: headsign(t, r), from: a, to: b,
                            depart: Date(timeIntervalSince1970: TimeInterval(t.stops[i].time)),
                            arrive: Date(timeIntervalSince1970: TimeInterval(t.stops[j].time)),
-                           isRealtime: true, stopCount: j - i, tripID: t.tripID)
+                           isRealtime: isRealtime, stopCount: j - i, tripID: t.tripID)
         }
 
         var results: [Itinerary] = []
@@ -448,8 +461,8 @@ struct TripPlanner {
             let number = J.str(t["Number"])
             var leg = RideLeg(route: route, headsign: headsign, from: from, to: to, depart: dep, arrive: arr,
                               isRealtime: false, stopCount: max(1, stops.count - 1), tripID: number)
-            // Overlay live departure time and platform for the first leg.
-            if idx == 0, let n = number, let l = live[n] {
+            // Overlay live departure time and platform for the first leg (only near-term: trip numbers repeat daily).
+            if idx == 0, dep.timeIntervalSinceNow < 3 * 3600, let n = number, let l = live[n] {
                 let shift = l.time.timeIntervalSince(dep)
                 leg.scheduledDepart = dep
                 dep = l.time; arr = arr.addingTimeInterval(max(0, shift))

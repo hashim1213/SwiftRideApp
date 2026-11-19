@@ -10,12 +10,29 @@ final class PlannerModel {
     var leaveAt: Date? = nil          // nil = leave now
     private(set) var result = PlanResult()
     private(set) var loading = false
+    private(set) var loadingMore = false
     private(set) var updatedAt: Date?
     private var task: Task<Void, Never>?
 
     init(from: Place = .currentLocation, to: Place? = nil) {
         self.from = from
         self.to = to
+    }
+
+    /// Fetches the next batch of options after the last one shown.
+    func loadMore() {
+        guard let to, let last = result.itineraries.last(where: { !$0.isWalkOnly }), !loadingMore else { return }
+        loadingMore = true
+        let from = from, after = last.leaveAt.addingTimeInterval(60)
+        let here = LocationService.shared.location?.coordinate
+        Task {
+            let more = await TripPlanner.shared.plan(from: from, to: to, current: here, departAfter: after)
+            let known = Set(result.itineraries.map(\.id))
+            withAnimation(.snappy) {
+                result.itineraries += more.itineraries.filter { !$0.isWalkOnly && !known.contains($0.id) && $0.leaveAt > last.leaveAt }
+            }
+            loadingMore = false
+        }
     }
 
     func swap() {
@@ -149,7 +166,7 @@ struct TripPlannerView: View {
             FilterChip(title: "Leave now", symbol: "clock", selected: model.leaveAt == nil) {
                 model.leaveAt = nil; model.run()
             }
-            FilterChip(title: model.leaveAt.map { "Leave \(TimeText.dayTime($0))" } ?? "Leave later…", symbol: "calendar",
+            FilterChip(title: model.leaveAt.map { TimeText.dayTime($0) } ?? "Plan ahead…", symbol: "calendar",
                        selected: model.leaveAt != nil) { showTimePicker = true }
             Spacer()
             if model.loading { ProgressView().controlSize(.small) }
@@ -158,7 +175,7 @@ struct TripPlannerView: View {
             LeaveAtPicker(date: model.leaveAt ?? .now.addingTimeInterval(15 * 60)) { d in
                 model.leaveAt = d; showTimePicker = false; model.run()
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.height(640)])
         }
     }
 
@@ -177,14 +194,36 @@ struct TripPlannerView: View {
                 appleMapsButton
             }
         } else {
-            if let next = model.result.itineraries.first(where: { !$0.isWalkOnly }) { NextUpBanner(itinerary: next) }
+            if let at = model.leaveAt {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar").foregroundStyle(Theme.accent)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(TimeText.longDay(at)).font(.headline)
+                        Text("Leaving after \(TimeText.clock.string(from: at)) · scheduled times").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+            } else if let next = model.result.itineraries.first(where: { !$0.isWalkOnly }) {
+                NextUpBanner(itinerary: next)
+            }
             ForEach(model.result.itineraries) { it in
                 NavigationLink(value: SheetRoute.itinerary(it)) {
-                    ItineraryCard(itinerary: it)
+                    ItineraryCard(itinerary: it, referenceDay: model.leaveAt ?? .now)
                 }
                 .buttonStyle(PressableStyle())
                 .tint(.primary)
             }
+            Button { model.loadMore() } label: {
+                HStack(spacing: 6) {
+                    if model.loadingMore { ProgressView().controlSize(.small) } else { Image(systemName: "chevron.down") }
+                    Text("Later trips")
+                }
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+            }
+            .tint(Theme.accent)
+            .disabled(model.loadingMore)
             if let to = model.to, !trips.isSaved(from: model.from, to: to) {
                 Button { trips.toggle(from: model.from, to: to) } label: {
                     Label("Save this trip for one-tap times and widgets", systemImage: "bookmark")
@@ -211,7 +250,9 @@ struct TripPlannerView: View {
             if let note = model.result.notes.first {
                 Text(note).font(.footnote).foregroundStyle(.secondary)
             }
-            Text("GO times come from the GO schedule with live delays and platforms; other agencies use live predictions for roughly the next three hours.")
+            Text(model.leaveAt == nil
+                 ? "Live predictions where available; GO adds live delays and platforms to its schedule."
+                 : "Scheduled times from each agency's published timetable. Check live times closer to departure.")
                 .font(.caption2).foregroundStyle(.tertiary)
         }
     }
@@ -236,20 +277,84 @@ struct TripPlannerView: View {
     }
 }
 
+/// Pick a day (Today, Tomorrow, Mon …) and a time — e.g. "Monday, 8:00 AM".
 struct LeaveAtPicker: View {
     @State var date: Date
     let onDone: (Date) -> Void
 
+    private var days: [Date] {
+        let today = Calendar.current.startOfDay(for: .now)
+        return (0..<8).compactMap { Calendar.current.date(byAdding: .day, value: $0, to: today) }
+    }
+    private let quickTimes: [(String, Int, Int)] = [("6 AM", 6, 0), ("7 AM", 7, 0), ("8 AM", 8, 0), ("9 AM", 9, 0),
+                                                     ("12 PM", 12, 0), ("5 PM", 17, 0), ("6 PM", 18, 0), ("10 PM", 22, 0)]
+
     var body: some View {
         NavigationStack {
-            DatePicker("Leave at", selection: $date, in: Date()..., displayedComponents: [.date, .hourAndMinute])
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                .padding()
-                .navigationTitle("Leave at")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { onDone(date) } } }
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Day").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(days, id: \.self) { d in
+                            let selected = Calendar.current.isDate(d, inSameDayAs: date)
+                            Button { setDay(d) } label: {
+                                VStack(spacing: 2) {
+                                    Text(dayTitle(d)).font(.subheadline.weight(.bold))
+                                    Text(d, format: .dateTime.month(.abbreviated).day()).font(.caption2)
+                                }
+                                .frame(width: 74, height: 54)
+                                .foregroundStyle(selected ? .black : .primary)
+                                .background(selected ? AnyShapeStyle(Theme.signal) : AnyShapeStyle(Color(uiColor: .tertiarySystemFill)),
+                                            in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(PressableStyle())
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+
+                Text("Time").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(quickTimes, id: \.0) { t in
+                            FilterChip(title: t.0, selected: isTime(t.1, t.2)) { setTime(t.1, t.2) }
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+                // Full-height wheel: clipping it would leave its touch area overlapping the chips above.
+                DatePicker("Time", selection: $date, displayedComponents: .hourAndMinute)
+                    .datePickerStyle(.wheel)
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity)
+                Button("Show trips for \(TimeText.longDay(date)), \(TimeText.clock.string(from: date))") { onDone(max(date, .now)) }
+                    .buttonStyle(PrimaryButtonStyle())
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .navigationTitle("Plan ahead")
+            .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    private func dayTitle(_ d: Date) -> String {
+        if Calendar.current.isDateInToday(d) { return "Today" }
+        if Calendar.current.isDateInTomorrow(d) { return "Tomorrow" }
+        return d.formatted(.dateTime.weekday(.abbreviated))
+    }
+
+    private func setDay(_ d: Date) {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        date = Calendar.current.date(bySettingHour: c.hour ?? 8, minute: c.minute ?? 0, second: 0, of: d) ?? d
+    }
+
+    private func setTime(_ h: Int, _ m: Int) {
+        date = Calendar.current.date(bySettingHour: h, minute: m, second: 0, of: date) ?? date
+    }
+
+    private func isTime(_ h: Int, _ m: Int) -> Bool {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return c.hour == h && c.minute == m
     }
 }
 
@@ -291,9 +396,14 @@ struct NextUpBanner: View {
 
 struct ItineraryCard: View {
     let itinerary: Itinerary
+    /// The day being planned; a day label appears only when an option falls on a different day (e.g. after midnight).
+    var referenceDay: Date = .now
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if !Calendar.current.isDate(itinerary.leaveAt, inSameDayAs: referenceDay) {
+                Text(TimeText.longDay(itinerary.leaveAt)).font(.caption.weight(.bold)).foregroundStyle(Theme.accent).textCase(.uppercase)
+            }
             HStack(alignment: .firstTextBaseline) {
                 Text(TimeText.clock.string(from: itinerary.leaveAt)).font(.title3.weight(.bold)).monospacedDigit()
                 Image(systemName: "arrow.right").font(.caption.weight(.bold)).foregroundStyle(.secondary)
@@ -321,7 +431,8 @@ struct ItineraryCard: View {
     }
 
     private func departureLine(_ r: RideLeg) -> String {
-        "\(TimeText.short(r.depart)) from \(r.from.name)"
+        let when = r.depart.timeIntervalSinceNow < 3600 ? TimeText.short(r.depart) : TimeText.clock.string(from: r.depart)
+        return "\(when) from \(r.from.name)"
     }
 
     private func status(_ r: RideLeg) -> (String, Color)? {
@@ -631,6 +742,13 @@ extension TimeText {
     static func duration(_ t: TimeInterval) -> String {
         let m = max(1, Int((t / 60).rounded()))
         return m < 60 ? "\(m) min" : "\(m / 60) h \(String(format: "%02d", m % 60)) min"
+    }
+
+    /// "Today", "Tomorrow", or "Monday, Nov 23"
+    static func longDay(_ d: Date) -> String {
+        if Calendar.current.isDateInToday(d) { return "Today" }
+        if Calendar.current.isDateInTomorrow(d) { return "Tomorrow" }
+        return d.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
     }
 
     static func dayTime(_ d: Date) -> String {
